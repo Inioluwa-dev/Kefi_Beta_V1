@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Conversation with {{ other_user.username }}</h2>
+  <div class="card mb-3">
+    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+      {% for msg in thread_msgs %}
+        <div class="mb-2 {% if msg.sender == user %}text-end{% endif %}">
+          <span class="fw-bold">{{ msg.sender.username }}</span>
+          <span class="text-muted small">{{ msg.timestamp|date:'M d, H:i' }}</span><br>
+          <span class="p-2 rounded {% if msg.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">{{ msg.content }}</span>
+        </div>
+      {% empty %}
+        <p>No messages yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        {{ form.errors }}
+      </div>
+    {% endif %}
+    {{ form.content }}
+    <button type="submit" class="btn btn-success mt-2">Send</button>
+  </form>
+</div>
+{% endblock %}

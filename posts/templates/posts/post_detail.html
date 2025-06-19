@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load highlight %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <img src="{{ post.user.profile.profile_pic.url }}" class="rounded-circle me-2" width="40" height="40">
+            <a href="{% url 'users:profile' post.user.username %}" class="fw-bold">{{ post.user.username }}</a>
+            <span class="text-muted ms-2 small">{{ post.created_at|date:'M d, H:i' }}</span>
+          </div>
+          <p>
+            {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+          </p>
+          {% if post.image %}
+            <img src="{{ post.image.url }}" class="img-fluid rounded mb-2">
+          {% endif %}
+          <div>
+            <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm">
+              <i class="fa fa-heart"></i> {{ post.like_count }}
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5>Comments ({{ post.comment_count }})</h5>
+          <form method="post">
+            {% csrf_token %}
+            {{ comment_form.content }}
+            <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+          </form>
+          <hr>
+          {% for comment in comments %}
+            <div class="mb-2">
+              <b>{{ comment.user.username }}</b> <span class="text-muted small">{{ comment.created_at|date:'M d, H:i' }}</span><br>
+              {% autoescape off %}{{ comment.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+            </div>
+          {% empty %}
+            <p>No comments yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

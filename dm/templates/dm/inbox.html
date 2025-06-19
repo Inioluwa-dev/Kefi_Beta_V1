@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Inbox</h2>
+  <a href="{% url 'dm:send' %}" class="btn btn-primary mb-3">New Message</a>
+  <ul class="list-group">
+    {% for msg in conversations %}
+      <li class="list-group-item">
+        {% if msg.sender != user %}
+          <a href="{% url 'dm:thread' msg.sender.username %}">
+            <b>{{ msg.sender.username }}</b>
+          </a>
+        {% else %}
+          <a href="{% url 'dm:thread' msg.recipient.username %}">
+            <b>{{ msg.recipient.username }}</b>
+          </a>
+        {% endif %}
+        <span class="text-muted small">{{ msg.timestamp|date:'M d, H:i' }}</span><br>
+        {{ msg.content|truncatechars:50 }}
+        {% if not msg.is_read and msg.recipient == user %}
+          <span class="badge bg-info">New</span>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li class="list-group-item">No messages.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

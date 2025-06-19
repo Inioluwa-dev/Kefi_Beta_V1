@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Notifications</h2>
+  <ul class="list-group">
+  {% for notification in notifications %}
+    <div class="card mb-3 {% if not notification.is_read %}border-primary{% endif %}">
+      <div class="card-body">
+        {% if not notification.is_read %}
+          <span class="badge bg-primary float-end">New</span>
+        {% endif %}
+        {% if notification.notification_type == 'report' %}
+          <p style="white-space: pre-line;">{{ notification.message }}</p>
+          {% if notification.post %}
+            <a href="{% url 'notifications:mark_read' notification.pk %}" class="btn btn-primary btn-sm">View Full Message</a>
+            {% if user.is_staff %}
+              {% if notification.post.blocked %}
+                <form method="post" action="{% url 'posts:unblock_post' notification.post.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-success btn-sm">Unblock Post</button>
+                </form>
+              {% else %}
+                <form method="post" action="{% url 'posts:block_post' notification.post.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-sm">Block Post</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {% elif notification.notification_type == 'like' %}
+          <p>
+            <strong>{{ notification.from_user.username }}</strong> liked your post.
+            {% if notification.post %}
+              <a href="{% url 'notifications:mark_read' notification.pk %}">View</a>
+            {% endif %}
+          </p>
+        {% elif notification.notification_type == 'comment' %}
+          <p>
+            <strong>{{ notification.from_user.username }}</strong> commented on your post.
+            {% if notification.post %}
+              <a href="{% url 'notifications:mark_read' notification.pk %}">View</a>
+            {% endif %}
+          </p>
+        {% elif notification.notification_type == 'follow' %}
+          <p>
+            <strong>{{ notification.from_user.username }}</strong> started following you.
+          </p>
+        {% else %}
+          <p>{{ notification }}</p>
+        {% endif %}
+        <span class="text-muted small">{{ notification.timestamp|date:"M d, H:i" }}</span>
+      </div>
+    </div>
+  {% empty %}
+    <div class="alert alert-info">No notifications.</div>
+  {% endfor %}
+  </ul>
+</div>
+{% endblock %}

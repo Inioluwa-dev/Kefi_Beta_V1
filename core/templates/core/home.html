@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+  <h1 class="display-4 mb-4">Welcome to Taken!</h1>
+  <p class="lead">A modern social media platform built with Django and Bootstrap.</p>
+  <a href="{% url 'posts:feed' %}" class="btn btn-primary btn-lg mt-3">Go to Feed</a>
+</div>
+{% endblock %}
