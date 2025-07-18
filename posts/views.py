@@ -9,14 +9,20 @@ from .forms_report import ReportForm
 from users.models import Profile
 from django.contrib.auth.models import User
 from notifications.models import Notification
+from kefi_beta_version1.views import custom_404_view
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.http import JsonResponse
 
-@login_required
 def feed_view(request):
+    if not request.user.is_authenticated:
+        return redirect(f"/users/login/?next=/posts/feed/&login_required=1")
     posts = Post.objects.filter(blocked=False).order_by('-created_at')
     return render(request, 'posts/feed.html', {'posts': posts})
 
-@login_required
 def post_create_view(request):
+    if not request.user.is_authenticated:
+        return custom_404_view(request)
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -183,3 +189,30 @@ def unblock_post_view(request, post_id):
     )
     messages.success(request, 'Post has been unblocked and the owner notified.')
     return redirect('notifications:list')
+
+def feed_api_view(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 10))
+    posts = Post.objects.filter(blocked=False).order_by('-created_at')
+    paginator = Paginator(posts, page_size)
+    page_obj = paginator.get_page(page)
+    html = ''
+    count = 0
+    for post in page_obj:
+        html += render_to_string('posts/post_card.html', {'post': post, 'request': request})
+        count += 1
+        if count % 5 == 0:
+            from django.contrib.auth.models import User
+            following = set(request.user.profile.following.values_list('user__id', flat=True))
+            suggestions = User.objects.exclude(id__in=following).exclude(id=request.user.id).order_by('?')[:3]
+            html += render_to_string('posts/follow_suggestions.html', {
+                'suggested_users': suggestions,
+                'request': request,
+                'following_ids': following,
+            })
+    return JsonResponse({
+        'html': html,
+        'has_next': page_obj.has_next(),
+    })

@@ -1,29 +1,328 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Conversation with {{ other_user.username }}</h2>
-  <div class="card mb-3">
-    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+<style>
+.dm-wrapper {
+  width: 100%;
+}
+.dm-main {
+  display: flex;
+  height: 80vh;
+  background: var(--white);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+  overflow: hidden;
+  margin-top: 2rem;
+  width: 100%;
+}
+.dm-sidebar {
+  width: 320px;
+  background: #f8fafc;
+  border-right: 2px solid var(--primary);
+  padding: 0;
+  overflow-y: auto;
+}
+.dm-main-content {
+  flex: 1 1 0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.dm-chat-header {
+  padding: 1.2rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 1.1rem;
+  position: relative;
+}
+.dm-header-avatar-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.dm-chat-header .dm-back-btn {
+  background: none;
+  color: var(--white);
+  border: none;
+  border-radius: 0;
+  width: 38px;
+  height: 44px;
+  font-size: 1.7rem;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+@media (min-width: 901px) {
+  .dm-chat-header .dm-back-btn {
+    display: none;
+  }
+}
+.dm-header-avatar {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2.5px solid var(--white);
+  background: #fff;
+  margin-left: 36px;
+}
+.dm-header-username {
+  font-size: 1.15rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 0.2rem;
+}
+.dm-back-btn {
+  display: none;
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--white);
+  color: var(--primary);
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.09);
+  z-index: 3;
+  align-items: center;
+  justify-content: center;
+}
+.dm-chat-body {
+  flex: 1 1 0;
+  padding: 2rem 1.5rem 1rem 1.5rem;
+  overflow-y: auto;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.dm-chat-body::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
+.dm-message-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+}
+.dm-message-row.me {
+  justify-content: flex-end;
+}
+.dm-bubble {
+  max-width: 70%;
+  padding: 0.8rem 1.2rem;
+  border-radius: 1.2rem;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 1.08rem;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  word-break: break-word;
+  position: relative;
+}
+.dm-message-row.them .dm-bubble {
+  background: #e6f7f5;
+  color: var(--secondary);
+  border-bottom-left-radius: 0.3rem;
+  border-bottom-right-radius: 1.2rem;
+}
+.dm-message-row.me .dm-bubble {
+  background: var(--primary);
+  color: var(--white);
+  border-bottom-right-radius: 0.3rem;
+  border-bottom-left-radius: 1.2rem;
+}
+.dm-bubble-meta {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.2rem;
+  text-align: right;
+}
+.dm-chat-form {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  background: var(--white);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.dm-chat-form textarea {
+  flex: 1 1 0;
+  border-radius: 1.2rem;
+  border: 1.5px solid #d1d5db;
+  padding: 0.7rem 1rem;
+  font-size: 1.08rem;
+  resize: none;
+  background: #f8fafc;
+  color: var(--text);
+}
+.dm-chat-form button {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 2rem;
+  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  transition: background 0.2s;
+}
+.dm-chat-form button:hover {
+  background: var(--secondary);
+}
+@media (max-width: 900px) {
+  .dm-main {
+    flex-direction: column;
+    height: auto;
+  }
+  .dm-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid var(--primary);
+    display: none;
+  }
+  .dm-wrapper:not(.dm-mobile-chat-active) .dm-sidebar {
+    display: block !important;
+  }
+  .dm-main-content {
+    display: none;
+  }
+  .dm-wrapper.dm-mobile-chat-active .dm-main-content {
+    display: flex !important;
+    width: 100%;
+    min-height: 80vh;
+  }
+  .dm-back-btn {
+    display: flex;
+  }
+}
+</style>
+<div class="dm-wrapper dm-mobile-chat-active" id="dm-wrapper">
+  <div class="container">
+    <div class="dm-main">
+      {% include 'dm/_sidebar.html' %}
+      <div class="dm-main-content">
+        <div class="dm-chat-header">
+          <button class="dm-back-btn" onclick="document.getElementById('dm-wrapper').classList.remove('dm-mobile-chat-active')">
+            <span style="font-size: 2rem; line-height: 44px; display: flex; align-items: center; justify-content: center; height: 44px;">&lt;</span>
+          </button>
+          <img src="{{ other_user.profile.profile_pic.url }}" class="rounded-circle dm-header-avatar" alt="Profile Picture">
+          <span class="dm-header-username">{{ other_user.username }}</span>
+        </div>
+        <div class="dm-chat-body" id="dm-chat-body">
       {% for msg in thread_msgs %}
-        <div class="mb-2 {% if msg.sender == user %}text-end{% endif %}">
-          <span class="fw-bold">{{ msg.sender.username }}</span>
-          <span class="text-muted small">{{ msg.timestamp|date:'M d, H:i' }}</span><br>
-          <span class="p-2 rounded {% if msg.sender == user %}bg-primary text-white{% else %}bg-light{% endif %}">{{ msg.content }}</span>
+            <div class="dm-message-row {% if msg.sender == user %}me{% else %}them{% endif %}">
+              <div class="dm-bubble">
+                {{ msg.content }}
+                <div class="dm-bubble-meta">{{ msg.timestamp|date:'M d, H:i' }}</div>
+              </div>
         </div>
       {% empty %}
-        <p>No messages yet.</p>
+            <div class="text-center text-muted mt-5">No messages yet.</div>
       {% endfor %}
+      <div id="dm-typing-indicator" style="display:none; color: var(--secondary); font-size: 1.01rem; margin: 0.5rem 0 0 0.5rem;"><i class="fa fa-pen-nib"></i> <span id="dm-typing-user"></span> is typing...</div>
+      <div id="dm-read-indicator" style="display:none; color: #22c55e; font-size: 0.97rem; margin: 0.5rem 0 0 0.5rem;"><i class="fa fa-check-double"></i> Seen</div>
+    </div>
+        <form class="dm-chat-form" id="dm-chat-form" autocomplete="off" onsubmit="return false;">
+    {{ form.content }}
+          <button type="submit"><i class="fa fa-paper-plane"></i></button>
+  </form>
+      </div>
     </div>
   </div>
-  <form method="post">
-    {% csrf_token %}
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        {{ form.errors }}
-      </div>
-    {% endif %}
-    {{ form.content }}
-    <button type="submit" class="btn btn-success mt-2">Send</button>
-  </form>
 </div>
+<script>
+// Mobile: Back button returns to sidebar
+if (window.innerWidth <= 900) {
+  document.querySelectorAll('.dm-convo-list li').forEach(function(li) {
+    li.addEventListener('click', function(e) {
+      document.getElementById('dm-wrapper').classList.add('dm-mobile-chat-active');
+    });
+  });
+}
+</script>
+<script>
+const me = "{{ user.username|escapejs }}";
+const otherUser = "{{ other_user.username|escapejs }}";
+const chatBody = document.getElementById('dm-chat-body');
+const chatForm = document.getElementById('dm-chat-form');
+const chatInput = chatForm.querySelector('textarea');
+const typingIndicator = document.getElementById('dm-typing-indicator');
+const typingUserSpan = document.getElementById('dm-typing-user');
+const readIndicator = document.getElementById('dm-read-indicator');
+let wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+let chatSocket = new WebSocket(
+  wsScheme + '://' + window.location.host + '/ws/chat/' + otherUser + '/'
+);
+let typingTimeout = null;
+function scrollToLastMessage() {
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+document.addEventListener('DOMContentLoaded', scrollToLastMessage);
+chatSocket.onopen = function() {
+  scrollToLastMessage();
+};
+chatSocket.onmessage = function(e) {
+  const data = JSON.parse(e.data);
+  if (data.type === 'message') {
+    const isMe = data.sender === me;
+    const row = document.createElement('div');
+    row.className = 'dm-message-row ' + (isMe ? 'me' : 'them');
+    const bubble = document.createElement('div');
+    bubble.className = 'dm-bubble';
+    bubble.innerHTML = data.message + '<div class="dm-bubble-meta">Now</div>';
+    row.appendChild(bubble);
+    chatBody.appendChild(row);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    typingIndicator.style.display = 'none';
+    if (!isMe) {
+      // Send read receipt
+      chatSocket.send(JSON.stringify({type: 'read'}));
+    }
+  } else if (data.type === 'typing') {
+    if (data.sender !== me) {
+      typingUserSpan.textContent = data.sender;
+      typingIndicator.style.display = '';
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => { typingIndicator.style.display = 'none'; }, 2000);
+    }
+  } else if (data.type === 'read') {
+    if (data.sender !== me) {
+      readIndicator.style.display = '';
+      setTimeout(() => { readIndicator.style.display = 'none'; }, 2000);
+    }
+  }
+};
+chatForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+  chatSocket.send(JSON.stringify({type: 'message', message: message}));
+  chatInput.value = '';
+  chatInput.focus();
+});
+chatInput.addEventListener('input', function() {
+  chatSocket.send(JSON.stringify({type: 'typing'}));
+});
+// Mark all as read on page load
+chatSocket.addEventListener('open', function() {
+  chatSocket.send(JSON.stringify({type: 'read'}));
+});
+</script>
 {% endblock %}

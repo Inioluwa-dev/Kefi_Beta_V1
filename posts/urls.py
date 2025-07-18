@@ -5,6 +5,7 @@ app_name = 'posts'
 
 urlpatterns = [
     path('feed/', views.feed_view, name='feed'),
+    path('feed/api/', views.feed_api_view, name='feed_api'),
     path('create/', views.post_create_view, name='post_create'),
     path('<int:pk>/', views.post_detail_view, name='post_detail'),
     path('<int:pk>/like/', views.like_post_view, name='like_post'),

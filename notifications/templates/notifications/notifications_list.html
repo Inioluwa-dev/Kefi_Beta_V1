@@ -1,59 +1,177 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Notifications</h2>
-  <ul class="list-group">
+<style>
+.notifications-container {
+  max-width: 600px;
+  margin: 2.5rem auto 0 auto;
+}
+.notification-card {
+  border-radius: 1.1rem;
+  box-shadow: 0 2px 12px rgba(20,184,166,0.07);
+  border: 2px solid transparent;
+  margin-bottom: 1.2rem;
+  background: var(--white);
+  transition: border 0.18s, box-shadow 0.18s, background 0.18s;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  padding: 1.2rem 1.5rem 1.2rem 1.2rem;
+  position: relative;
+  cursor: pointer;
+  border-bottom: 1px solid #e0e0e0;
+  animation: fadeIn 0.5s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+.notification-card.unread {
+  border-color: var(--primary);
+  background: rgba(20,184,166,0.04);
+  animation: fadeInUnread 0.7s;
+}
+@keyframes fadeInUnread {
+  from { background: #e0fff7; opacity: 0; }
+  to { background: rgba(20,184,166,0.04); opacity: 1; }
+}
+.notification-card:hover {
+  background: rgba(20,184,166,0.09);
+  box-shadow: 0 4px 24px rgba(20,184,166,0.13);
+}
+.notification-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--primary);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+.notification-icon {
+  font-size: 1.7rem;
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  margin-right: 0.2rem;
+  filter: drop-shadow(0 2px 4px rgba(20,184,166,0.09));
+}
+.notification-icon.like { color: #e63946; }
+.notification-icon.comment { color: #14b8a6; }
+.notification-icon.follow { color: #f59e42; }
+.notification-icon.report { color: #fbbf24; }
+.notification-content {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.notification-actions {
+  margin-top: 0.7rem;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.notification-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: var(--primary);
+  color: var(--white);
+  border-radius: 1rem;
+  font-size: 0.92rem;
+  padding: 0.2rem 0.8rem;
+  font-weight: 600;
+  animation: badgePop 0.5s;
+}
+@keyframes badgePop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.soft-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e0e0e0 40%, #e0e0e0 60%, transparent);
+  border: none;
+  margin: 0.5rem 0 0.5rem 0;
+}
+@media (max-width: 700px) {
+  .notifications-container {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+  .notification-card {
+    padding: 1rem 0.7rem 1rem 0.7rem;
+    gap: 0.7rem;
+  }
+}
+</style>
+<div class="notifications-container">
+  <h2 class="mb-4" style="color: var(--primary); font-weight: 700; text-align: center;"><i class="fa fa-bell"></i> Notifications</h2>
   {% for notification in notifications %}
-    <div class="card mb-3 {% if not notification.is_read %}border-primary{% endif %}">
-      <div class="card-body">
+    <div class="notification-card{% if not notification.is_read %} unread{% endif %}" onclick="window.location='{% url 'notifications:mark_read' notification.pk %}'">
+      {% if notification.from_user and notification.notification_type != 'report' %}
+        <img src="{{ notification.from_user.profile.profile_pic.url }}" class="notification-avatar" alt="Avatar">
+      {% endif %}
+      <span class="notification-icon {% if notification.notification_type == 'like' %}like{% elif notification.notification_type == 'comment' %}comment{% elif notification.notification_type == 'follow' %}follow{% elif notification.notification_type == 'report' %}report{% endif %}">
+        {% if notification.notification_type == 'report' %}
+          <i class="fa fa-flag"></i>
+        {% elif notification.notification_type == 'like' %}
+          <i class="fa fa-heart"></i>
+        {% elif notification.notification_type == 'comment' %}
+          <i class="fa fa-comment"></i>
+        {% elif notification.notification_type == 'follow' %}
+          <i class="fa fa-user-plus"></i>
+        {% else %}
+          <i class="fa fa-bell"></i>
+        {% endif %}
+      </span>
+      <div class="notification-content">
         {% if not notification.is_read %}
-          <span class="badge bg-primary float-end">New</span>
+          <span class="notification-badge">New</span>
         {% endif %}
         {% if notification.notification_type == 'report' %}
-          <p style="white-space: pre-line;">{{ notification.message }}</p>
+          <div style="white-space: pre-line;">{{ notification.message }}</div>
           {% if notification.post %}
-            <a href="{% url 'notifications:mark_read' notification.pk %}" class="btn btn-primary btn-sm">View Full Message</a>
-            {% if user.is_staff %}
-              {% if notification.post.blocked %}
-                <form method="post" action="{% url 'posts:unblock_post' notification.post.pk %}" style="display:inline;">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-success btn-sm">Unblock Post</button>
-                </form>
-              {% else %}
-                <form method="post" action="{% url 'posts:block_post' notification.post.pk %}" style="display:inline;">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-danger btn-sm">Block Post</button>
-                </form>
+            <div class="notification-actions">
+              <a href="{% url 'notifications:mark_read' notification.pk %}" class="btn btn-main btn-sm">View Full Message</a>
+              {% if user.is_staff %}
+                {% if notification.post.blocked %}
+                  <form method="post" action="{% url 'posts:unblock_post' notification.post.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Unblock Post</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="{% url 'posts:block_post' notification.post.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Block Post</button>
+                  </form>
+                {% endif %}
               {% endif %}
-            {% endif %}
+            </div>
           {% endif %}
         {% elif notification.notification_type == 'like' %}
-          <p>
-            <strong>{{ notification.from_user.username }}</strong> liked your post.
+          <div><strong>{{ notification.from_user.username }}</strong> liked your post.
             {% if notification.post %}
-              <a href="{% url 'notifications:mark_read' notification.pk %}">View</a>
+              <a href="{% url 'notifications:mark_read' notification.pk %}" class="ms-2">View</a>
             {% endif %}
-          </p>
+          </div>
         {% elif notification.notification_type == 'comment' %}
-          <p>
-            <strong>{{ notification.from_user.username }}</strong> commented on your post.
+          <div><strong>{{ notification.from_user.username }}</strong> commented on your post.
             {% if notification.post %}
-              <a href="{% url 'notifications:mark_read' notification.pk %}">View</a>
+              <a href="{% url 'notifications:mark_read' notification.pk %}" class="ms-2">View</a>
             {% endif %}
-          </p>
+          </div>
         {% elif notification.notification_type == 'follow' %}
-          <p>
-            <strong>{{ notification.from_user.username }}</strong> started following you.
-          </p>
+          <div><strong>{{ notification.from_user.username }}</strong> started following you.</div>
         {% else %}
-          <p>{{ notification }}</p>
+          <div>{{ notification }}</div>
         {% endif %}
-        <span class="text-muted small">{{ notification.timestamp|date:"M d, H:i" }}</span>
+        <span class="text-muted small d-block mt-1">{{ notification.timestamp|date:"M d, H:i" }}</span>
       </div>
     </div>
+    {% if not forloop.last %}<div class="soft-divider"></div>{% endif %}
   {% empty %}
     <div class="alert alert-info">No notifications.</div>
   {% endfor %}
-  </ul>
 </div>
 {% endblock %}

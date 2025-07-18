@@ -1,0 +1,163 @@
+/* core/static/core/core.css */
+
+:root {
+    --primary: #14b8a6; /* Teal */
+    --secondary: #111111; /* Black */
+    --accent: #14b8a6; /* Teal accent */
+    --background: #ffffff; /* White */
+    --text: #111111; /* Black */
+    --white: #fff;
+    --success: #14b8a6;
+    --danger: #e63946;
+}
+
+body {
+    background: var(--background);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar-custom {
+    background: var(--secondary) !important;
+    color: var(--white) !important;
+    border-bottom: 3px solid var(--primary);
+    box-shadow: 0 2px 12px rgba(20,184,166,0.07);
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+}
+.navbar-custom .navbar-brand {
+    color: var(--primary) !important;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 1.5rem;
+}
+.navbar-custom .nav-link {
+    color: var(--white) !important;
+    font-weight: 500;
+    font-size: 1.08rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    transition: color 0.2s, background 0.2s;
+    border-radius: 0.7rem;
+    padding: 0.5rem 1rem;
+}
+.navbar-custom .nav-link.active, .navbar-custom .nav-link:hover, .navbar-custom .nav-link:focus {
+    color: var(--primary) !important;
+    background: var(--white);
+    text-decoration: none;
+}
+.navbar-custom .badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--primary) 80%, var(--secondary) 100%);
+    color: var(--white);
+    padding: 4rem 2rem 3rem 2rem;
+    border-radius: 0 0 2rem 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero h1 span {
+    color: var(--white);
+}
+
+.hero h1 span span {
+    color: var(--primary);
+    background: var(--white);
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.hero p {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+}
+
+.hero .icon {
+    color: var(--white);
+}
+
+.btn-main {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    font-weight: 600;
+    border-radius: 2rem;
+    padding: 0.7rem 2rem;
+    transition: background 0.2s;
+}
+
+.btn-main:hover {
+    background: var(--secondary);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.section {
+    padding: 2rem 0;
+}
+
+.card-custom {
+    background: var(--white);
+    border-radius: 1rem;
+    box-shadow: 0 2px 12px rgba(20,184,166,0.07);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: box-shadow 0.2s;
+}
+
+.card-custom:hover {
+    box-shadow: 0 4px 24px rgba(20,184,166,0.13);
+}
+
+.card-teal {
+    border: 2px solid var(--primary) !important;
+    background: rgba(20,184,166,0.07) !important;
+}
+
+.card-custom h4 {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.card-custom p {
+    color: var(--secondary);
+}
+
+.icon {
+    color: var(--primary);
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.navbar-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 991.98px) {
+  .navbar-main .navbar-toggler {
+    margin-left: auto;
+    margin-right: 0;
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+  }
+  .navbar-main .navbar-brand {
+    margin-left: 0;
+  }
+} 

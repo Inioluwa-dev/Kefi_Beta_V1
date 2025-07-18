@@ -1,0 +1,20 @@
+<div class="card mb-4 shadow-lg rounded-4 border-0" style="border: 2px solid var(--primary) !important; background: var(--white); overflow: hidden;">
+  <div class="card-body p-4">
+    <h5 class="fw-bold mb-3" style="color: var(--primary);"><i class="fa fa-user-plus"></i> People you may know</h5>
+    <div class="row">
+      {% for user in suggested_users %}
+        <div class="col-12 d-flex align-items-center mb-3">
+          <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle me-2 border border-2" style="border-color: var(--primary) !important;" width="36" height="36">
+          <a href="{% url 'users:profile' user.username %}" class="fw-bold text-decoration-none me-2" style="color: var(--primary);">{{ user.username }}</a>
+          {% if user.id in following_ids %}
+            <button type="button" class="btn btn-success btn-sm rounded-pill follow-btn-ajax" data-url="{% url 'users:unfollow' user.username %}" data-following="1" style="margin-left:auto;"><i class="fa fa-user-check"></i> Following</button>
+          {% else %}
+            <button type="button" class="btn btn-main btn-sm rounded-pill follow-btn-ajax" data-url="{% url 'users:follow' user.username %}" data-following="0" style="margin-left:auto;"><i class="fa fa-user-plus"></i> Follow</button>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="col-12 text-muted">No suggestions right now.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div> 

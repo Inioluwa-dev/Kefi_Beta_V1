@@ -1,15 +1,37 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load add_class %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'posts/report.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Report Post</h2>
-  <div class="card">
-    <div class="card-body">
-      <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-danger">Report</button>
-      </form>
-    </div>
+<div class="report-container">
+  <button class="post-back-btn" onclick="window.location.href='{{ post.get_absolute_url }}'">
+    <i class="fa fa-arrow-left"></i>
+  </button>
+  <div class="report-title">
+    <i class="fa fa-flag"></i> Report Post
+  </div>
+  <div class="report-card">
+    <form method="post" class="report-form">
+      {% csrf_token %}
+      {% for field in form %}
+        {% if field.name == 'reason' %}
+          <label for="id_reason" class="report-form-label">Reason</label>
+          {{ field|add_class:'report-form-textarea' }}
+        {% elif field.name == 'report_type' or field.name == 'reported_post' or field.name == 'reported_user' %}
+          {# Hide these fields, they're set in the view #}
+          {{ field.as_hidden }}
+        {% else %}
+          <label for="id_{{ field.name }}" class="report-form-label">{{ field.label }}</label>
+          {{ field|add_class:'report-form-input' }}
+        {% endif %}
+        {% if field.errors %}
+          <div class="text-danger small">{{ field.errors|striptags }}</div>
+        {% endif %}
+      {% endfor %}
+      <button type="submit" class="report-btn"><i class="fa fa-flag"></i> Report</button>
+    </form>
   </div>
 </div>
 {% endblock %}

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+import os 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-3e*0nvm#2d)(**j0q_tzic38sn@(8e8*+g26xxv&!5!c@xwqwv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True 
 
 ALLOWED_HOSTS = []
 
@@ -35,6 +37,7 @@ INSTALLED_APPS = [
     'posts',
     'notifications.apps.NotificationsConfig',  # use AppConfig for signals
     'core',
+    'channels',
     'dm',  # renamed from messages
     'sm_app',
     'django.contrib.admin',
@@ -43,10 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'whitenoise.runserver_nostatic',  # <-- Add this line
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # <-- Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,6 +80,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'kefi_beta_version1.wsgi.application'
+
+ASGI_APPLICATION = 'kefi_beta_version1.asgi.application'
+
+APPEND_SLASH = False 
 
 
 # Database
@@ -126,11 +135,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # global static
-]
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # for collectstatic
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static',  # global static
+# ]
+# STATICFILES_DIRS = [
+#     BASE_DIR / 'static',  # global static
+# ]
 
 # Media files (user uploads)
 MEDIA_URL = '/media/'
@@ -141,3 +153,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/users/login/'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

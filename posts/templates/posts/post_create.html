@@ -1,24 +1,132 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-4">
+<style>
+.create-post-card {
+  background: var(--white);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+  border: 2px solid var(--primary);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-top: 2rem;
+}
+.create-post-title {
+  text-align: center;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+}
+.create-post-form label {
+  font-weight: 500;
+  color: var(--secondary);
+}
+.create-post-form .form-control {
+  border-radius: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  margin-bottom: 1.2rem;
+}
+.create-post-form .form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+}
+.create-post-btn {
+  width: 100%;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 2rem;
+  font-weight: 600;
+  padding: 0.7rem 0;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.create-post-btn:hover {
+  background: var(--secondary);
+  color: var(--white);
+}
+.post-textarea {
+  min-height: 120px;
+  font-size: 1.15rem;
+  padding: 1.2rem 1rem;
+  resize: none;
+  background: #f8fafc;
+  color: var(--text);
+}
+.post-upload-label {
+  display: block;
+  background: rgba(20,184,166,0.07);
+  color: var(--primary);
+  border: 1.5px dashed var(--primary);
+  border-radius: 0.7rem;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  transition: background 0.2s, border 0.2s;
+}
+.post-upload-label:hover {
+  background: rgba(20,184,166,0.13);
+  border-color: var(--secondary);
+}
+.post-upload {
+  display: none;
+}
+#image-preview {
+  display: none;
+  margin-bottom: 1rem;
+  max-width: 100%;
+  border-radius: 0.7rem;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.09);
+  border: 2px solid var(--primary);
+}
+</style>
+<div class="container">
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h2 class="mb-4">Create Post</h2>
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field }}
-            {% if field.errors %}
-              <div class="text-danger small">{{ field.errors|striptags }}</div>
-            {% endif %}
-          </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-success w-100">Post</button>
-      </form>
+    <div class="col-md-7 col-lg-6">
+      <div class="create-post-card">
+        <h2 class="create-post-title"><i class="fa fa-pen-nib"></i> Create Post</h2>
+        <form method="post" enctype="multipart/form-data" class="create-post-form">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              {% if field.name == 'image' %}
+                <label for="id_image" class="post-upload-label"><i class="fa fa-image"></i> Click or drag to upload an image</label>
+                {{ field }}
+                <img id="image-preview" alt="Image preview" />
+              {% else %}
+                {{ field.label_tag }}
+                {{ field }}
+              {% endif %}
+              {% if field.errors %}
+                <div class="text-danger small">{{ field.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="create-post-btn"><i class="fa fa-paper-plane"></i> Post</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
+<script>
+// Image preview for upload
+const uploadInput = document.getElementById('id_image');
+const previewImg = document.getElementById('image-preview');
+if (uploadInput && previewImg) {
+  uploadInput.addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        previewImg.src = ev.target.result;
+        previewImg.style.display = 'block';
+      };
+      reader.readAsDataURL(this.files[0]);
+    } else {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+  });
+}
+</script>
 {% endblock %}

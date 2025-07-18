@@ -1,0 +1,118 @@
+/* users/static/users/auth.css */
+
+:root {
+    --primary: #14b8a6; /* Teal */
+    --secondary: #111111; /* Black */
+    --accent: #14b8a6; /* Teal accent */
+    --background: #ffffff; /* White */
+    --text: #111111; /* Black */
+    --white: #fff;
+    --danger: #e63946;
+}
+
+body {
+    background: var(--background);
+    color: var(--text);
+}
+
+.auth-container {
+    max-width: 400px;
+    margin: 3rem auto;
+    background: var(--white);
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+    padding: 2.5rem 2rem 2rem 2rem;
+}
+
+.auth-title {
+    text-align: center;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+.auth-form label {
+    font-weight: 500;
+    color: var(--secondary);
+}
+
+.auth-form .form-control {
+    border-radius: 0.7rem;
+    border: 1px solid #d1d5db;
+    margin-bottom: 1.2rem;
+}
+
+.auth-form .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(20,184,166,0.13);
+}
+
+.auth-btn {
+    width: 100%;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 2rem;
+    font-weight: 600;
+    padding: 0.7rem 0;
+    margin-top: 0.5rem;
+    transition: background 0.2s;
+}
+
+.auth-btn:hover {
+    background: var(--secondary);
+    color: var(--primary);
+}
+
+.auth-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.97rem;
+}
+
+.auth-link:hover {
+    color: var(--secondary);
+    text-decoration: underline;
+}
+
+.auth-icon {
+    color: var(--primary);
+    font-size: 2rem;
+    margin-bottom: 0.7rem;
+    display: block;
+    text-align: center;
+}
+
+.auth-error {
+    color: var(--danger);
+    font-size: 0.98rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.auth-input {
+    border-radius: 0.7rem;
+    border: 1.5px solid #d1d5db;
+    background: var(--background);
+    color: var(--text);
+    font-size: 1.08rem;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.2rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: none;
+}
+.auth-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+    background: var(--white);
+    outline: none;
+}
+.auth-input:disabled, .auth-input[readonly] {
+    background: #e9ecef;
+    color: #adb5bd;
+}
+.auth-error + .auth-input,
+.auth-input.is-invalid {
+    border-color: var(--danger);
+    background: #fff0f3;
+} 

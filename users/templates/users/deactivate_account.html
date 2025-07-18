@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="alert alert-warning text-center">
+        <h4>Deactivate Account</h4>
+        <p>Are you sure you want to deactivate your account? You can reactivate by logging in again.</p>
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-warning">Deactivate</button>
+          <a href="{% url 'users:profile' user.username %}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

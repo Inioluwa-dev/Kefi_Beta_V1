@@ -2,52 +2,123 @@
 {% load static %}
 {% load highlight %}
 {% block content %}
-<div class="container mt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <a href="{% url 'posts:post_create' %}" class="btn btn-primary mb-3 shadow-sm rounded-pill">Create Post</a>
-      {% for post in posts %}
-        <div class="card mb-4 shadow-sm rounded-4 border-0">
-          <div class="card-body">
-            <div class="d-flex align-items-center mb-2">
-              <img src="{{ post.user.profile.profile_pic.url }}" class="rounded-circle me-2 border border-2 border-primary" width="40" height="40">
-              <a href="{% url 'users:profile' post.user.username %}" class="fw-bold text-decoration-none">{{ post.user.username }}</a>
-              <span class="text-muted ms-2 small">{{ post.created_at|date:'M d, H:i' }}</span>
-            </div>
-            <p class="fs-5">
-              {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
-            </p>
-            {% if post.image %}
-              <img src="{{ post.image.url }}" class="img-fluid rounded mb-2 shadow-sm">
+<div style="background: rgba(20,184,166,0.05); width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; min-height: 100vh;">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <a href="{% url 'posts:post_create' %}" class="btn btn-main mb-3 shadow-sm rounded-pill"><i class="fa fa-plus"></i> Create Post</a>
+        <div id="feed-posts-container">
+          {% for post in posts|slice:':10' %}
+            {% include 'posts/post_card.html' with post=post %}
+            {% if forloop.counter0|add:1|divisibleby:5 and not forloop.last %}
+              {% with suggested_users=None %}
+                {# Placeholder for follow suggestions, will be injected by JS #}
+              {% endwith %}
             {% endif %}
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="d-flex gap-2">
-                <a href="{% url 'posts:post_detail' post.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill">
-                  <i class="fa fa-comment"></i> {{ post.comment_count }}
-                </a>
-                <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">
-                  <i class="fa fa-heart"></i> {{ post.like_count }}
-                </a>
-              </div>
-              <div class="dropdown">
-                <button class="btn btn-light btn-sm rounded-circle" type="button" id="dropdownMenuButton{{ post.pk }}" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="fa fa-ellipsis-h"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ post.pk }}">
-                  <li><a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri|add:post.get_absolute_url }}'); return false;">Share</a></li>
-                  <li><a class="dropdown-item text-danger" href="{% url 'posts:report_post' post.pk %}">Report</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          {% endfor %}
         </div>
-      {% empty %}
-        <div class="alert alert-info text-center py-5">
-          <i class="fa fa-users fa-2x mb-2"></i><br>
-          No posts to show.<br>Start following users or create a post!
+        <div id="feed-loading" style="display:none; text-align:center; padding:1.5rem;">
+          <i class="fa fa-spinner fa-spin fa-2x" style="color:var(--primary);"></i>
         </div>
-      {% endfor %}
+        <div id="feed-end" style="display:none; text-align:center; color:var(--secondary); font-weight:600; padding:1.5rem;">
+          No more posts to show.
+        </div>
+      </div>
     </div>
   </div>
 </div>
+<script>
+let feedPage = 1;
+let feedLoading = false;
+let feedHasNext = true;
+function loadMoreFeedPosts() {
+  if (feedLoading || !feedHasNext) return;
+  feedLoading = true;
+  document.getElementById('feed-loading').style.display = '';
+  fetch(`{% url 'posts:feed_api' %}?page=${feedPage+1}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.html) {
+        document.getElementById('feed-posts-container').insertAdjacentHTML('beforeend', data.html);
+      }
+      feedHasNext = data.has_next;
+      feedPage++;
+      if (!feedHasNext) {
+        document.getElementById('feed-end').style.display = '';
+      }
+      feedLoading = false;
+      document.getElementById('feed-loading').style.display = 'none';
+      attachFollowAjaxHandlers();
+    });
+}
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+function attachFollowAjaxHandlers() {
+  document.querySelectorAll('.follow-btn-ajax').forEach(btn => {
+    if (btn.dataset.ajaxAttached) return;
+    btn.dataset.ajaxAttached = '1';
+    btn.addEventListener('click', function() {
+      const url = btn.getAttribute('data-url');
+      const isFollowing = btn.getAttribute('data-following') === '1';
+      btn.disabled = true;
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      }).then(res => {
+        if (res.ok) {
+          if (isFollowing) {
+            // Unfollowed: change to Follow
+            btn.textContent = 'Follow';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-main');
+            btn.setAttribute('data-following', '0');
+            btn.setAttribute('data-url', btn.getAttribute('data-url').replace('unfollow', 'follow'));
+            btn.innerHTML = '<i class="fa fa-user-plus"></i> Follow';
+          } else {
+            // Followed: change to Following
+            btn.textContent = 'Following';
+            btn.classList.remove('btn-main');
+            btn.classList.add('btn-success');
+            btn.setAttribute('data-following', '1');
+            btn.setAttribute('data-url', btn.getAttribute('data-url').replace('follow', 'unfollow'));
+            btn.innerHTML = '<i class="fa fa-user-check"></i> Following';
+          }
+          btn.disabled = false;
+        } else {
+          btn.disabled = false;
+          alert('Could not update follow status.');
+        }
+      }).catch(() => {
+        btn.disabled = false;
+        alert('Could not update follow status.');
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', attachFollowAjaxHandlers);
+window.addEventListener('scroll', function() {
+  if (!feedHasNext || feedLoading) return;
+  const scrollY = window.scrollY || window.pageYOffset;
+  const viewport = window.innerHeight;
+  const fullHeight = document.body.offsetHeight;
+  if (scrollY + viewport + 200 >= fullHeight) {
+    loadMoreFeedPosts();
+  }
+});
+</script>
 {% endblock %}

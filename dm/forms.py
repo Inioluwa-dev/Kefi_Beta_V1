@@ -6,7 +6,8 @@ class MessageForm(forms.ModelForm):
         model = Message
         fields = ['recipient', 'content']
         widgets = {
-            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Type your message...'}),
+            'recipient': forms.Select(attrs={'class': 'form-control send-msg-input', 'placeholder': 'Select recipient...'}),
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Type your message...', 'class': 'form-control send-msg-input'}),
         }
 
     def __init__(self, *args, **kwargs):

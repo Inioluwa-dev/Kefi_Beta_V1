@@ -1,24 +1,79 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
+{% load form_tags %}
 {% block content %}
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h2 class="mb-4">Edit Profile</h2>
-      <form method="post" enctype="multipart/form-data">
+<link rel="stylesheet" href="{% static 'users/edit_profile.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-desktop/fontawesome-free-6.7.2-desktop/css/all.min.css' %}">
+
+<div class="edit-profile-container">
+    <h2 class="edit-profile-title">Edit Profile</h2>
+    <form method="post" enctype="multipart/form-data" autocomplete="off" class="edit-profile-form">
         {% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field }}
-            {% if field.errors %}
-              <div class="text-danger small">{{ field.errors|striptags }}</div>
+
+        <div class="profile-pic-preview input-icon">
+            <img src="{{ user.profile.profile_pic.url }}" alt="Profile Pic">
+            <label for="id_profile_pic" class="profile-upload-btn" title="Change profile pic"><i class="fa fa-camera"></i></label>
+            {{ form.profile_pic|add_class:'custom-file-input' }}
+            <span class="file-badge">{{ user.profile.profile_pic.url|cut:'profile_pics/' }}</span>
+        </div>
+
+        <div class="cover-upload-row input-icon">
+            {% if user.profile.cover_image %}
+                <div class="cover-img-blur" style="background-image:url('{{ user.profile.cover_image.url }}');"></div>
+                <img src="{{ user.profile.cover_image.url }}" alt="Cover Image" class="cover-img-preview">
+            {% else %}
+                <div class="cover-img-placeholder">No cover image</div>
             {% endif %}
-          </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-success w-100">Save Changes</button>
-      </form>
-    </div>
-  </div>
+            <label for="id_cover_image" class="cover-upload-btn" title="Change cover image"><i class="fa fa-image"></i></label>
+            {{ form.cover_image|add_class:'custom-file-input' }}
+            <span class="file-badge">{{ user.profile.cover_image.url|cut:'profile_covers/' }}</span>
+        </div>
+
+        <div class="form-group input-icon">
+            <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+            <span class="icon"><i class="fa fa-user"></i></span>
+            {{ form.bio|add_class:'form-control' }}
+            {% if form.bio.errors %}<div class="form-error">{{ form.bio.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group input-icon">
+            <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+            <span class="icon"><i class="fa fa-map-marker-alt"></i></span>
+            {{ form.location|add_class:'form-control' }}
+            {% if form.location.errors %}<div class="form-error">{{ form.location.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group input-icon">
+            <label for="{{ form.links.id_for_label }}" class="form-label">Links (one per line, e.g. https://yourwebsite.com)</label>
+            <span class="icon"><i class="fa fa-link"></i></span>
+            {{ form.links|add_class:'form-control' }}
+            {% if form.links.errors %}<div class="form-error">{{ form.links.errors }}</div>{% endif %}
+        </div>
+        <div class="switch-group custom-switch">
+            <input type="checkbox" name="is_private" id="id_is_private" class="custom-switch-input" {% if form.is_private.value %}checked{% endif %}>
+            <label for="id_is_private" class="custom-switch-label">Private profile</label>
+            {% if form.is_private.errors %}<div class="form-error">{{ form.is_private.errors }}</div>{% endif %}
+        </div>
+        <div class="button-row">
+            <button type="submit" class="btn btn-save"><i class="fa fa-save"></i> Save Changes</button>
+            <button type="button" class="btn btn-deactivate" onclick="window.location.href='{% url 'users:deactivate_account' %}'"><i class="fa fa-user-slash"></i> Deactivate</button>
+            <button type="button" class="btn btn-delete" onclick="window.location.href='{% url 'users:delete_account' %}'"><i class="fa fa-trash"></i> Delete</button>
+        </div>
+    </form>
 </div>
+
+<script>
+const profilePicInput = document.getElementById('id_profile_pic');
+const profilePicBadge = document.querySelector('.profile-pic-preview .file-badge');
+if (profilePicInput) {
+    profilePicInput.addEventListener('change', function() {
+        profilePicBadge.textContent = this.files[0] ? this.files[0].name : '';
+    });
+}
+const coverImageInput = document.getElementById('id_cover_image');
+const coverImageBadge = document.querySelector('.cover-upload-row .file-badge');
+if (coverImageInput) {
+    coverImageInput.addEventListener('change', function() {
+        coverImageBadge.textContent = this.files[0] ? this.files[0].name : '';
+    });
+}
+</script>
 {% endblock %}

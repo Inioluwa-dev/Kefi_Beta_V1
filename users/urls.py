@@ -11,4 +11,6 @@ urlpatterns = [
     path('edit/', views.edit_profile_view, name='edit_profile'),
     path('follow/<str:username>/', views.follow_view, name='follow'),
     path('unfollow/<str:username>/', views.unfollow_view, name='unfollow'),
+    path('deactivate/', views.deactivate_account_view, name='deactivate_account'),
+    path('delete/', views.delete_account_view, name='delete_account'),
 ]

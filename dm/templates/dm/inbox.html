@@ -1,29 +1,83 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Inbox</h2>
-  <a href="{% url 'dm:send' %}" class="btn btn-primary mb-3">New Message</a>
-  <ul class="list-group">
-    {% for msg in conversations %}
-      <li class="list-group-item">
-        {% if msg.sender != user %}
-          <a href="{% url 'dm:thread' msg.sender.username %}">
-            <b>{{ msg.sender.username }}</b>
-          </a>
-        {% else %}
-          <a href="{% url 'dm:thread' msg.recipient.username %}">
-            <b>{{ msg.recipient.username }}</b>
-          </a>
-        {% endif %}
-        <span class="text-muted small">{{ msg.timestamp|date:'M d, H:i' }}</span><br>
-        {{ msg.content|truncatechars:50 }}
-        {% if not msg.is_read and msg.recipient == user %}
-          <span class="badge bg-info">New</span>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li class="list-group-item">No messages.</li>
-    {% endfor %}
-  </ul>
+<style>
+.dm-wrapper {
+  width: 100%;
+}
+.dm-main {
+  display: flex;
+  height: 80vh;
+  background: var(--white);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+  overflow: hidden;
+  margin-top: 2rem;
+  width: 100%;
+}
+.dm-main-content {
+  flex: 1 1 0;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.dm-preview {
+  text-align: center;
+  color: var(--secondary);
+  opacity: 0.7;
+}
+.dm-preview .fa-comments {
+  font-size: 3rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+@media (max-width: 900px) {
+  .dm-main {
+    flex-direction: column;
+    height: auto;
+  }
+  .dm-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid var(--primary);
+    display: block;
+  }
+  .dm-main-content {
+    display: none;
+  }
+  .dm-wrapper.dm-mobile-chat-active .dm-sidebar {
+    display: none !important;
+  }
+  .dm-wrapper.dm-mobile-chat-active .dm-main-content {
+    display: flex !important;
+    width: 100%;
+    min-height: 80vh;
+  }
+}
+</style>
+<div class="dm-wrapper" id="dm-wrapper">
+  <div class="container">
+    <div class="dm-main">
+      {% include 'dm/_sidebar.html' %}
+      <div class="dm-main-content">
+        <div class="dm-preview w-100">
+          <i class="fa fa-comments mb-3"></i>
+          <h3 class="mt-2">Select a conversation</h3>
+          <p>Start chatting with your friends. Your messages will appear here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+<script>
+// Mobile: When a conversation is clicked, show only the chat
+if (window.innerWidth <= 900) {
+  document.querySelectorAll('.dm-convo-list li').forEach(function(li) {
+    li.addEventListener('click', function(e) {
+      document.getElementById('dm-wrapper').classList.add('dm-mobile-chat-active');
+    });
+  });
+}
+</script>
 {% endblock %}

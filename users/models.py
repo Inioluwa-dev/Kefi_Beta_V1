@@ -10,6 +10,8 @@ class Profile(models.Model):
     location = models.CharField(max_length=100, blank=True)
     # Users this profile is following
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
+    links = models.TextField(blank=True)  # Comma-separated or JSON links
+    is_private = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} Profile"

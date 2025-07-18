@@ -2,42 +2,215 @@
 {% load static %}
 {% load highlight %}
 {% block content %}
+<style>
+.post-detail-card {
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+  border: 2px solid var(--primary);
+  background: var(--white);
+  margin-bottom: 2rem;
+  padding: 2.2rem 2rem 2rem 2rem;
+}
+.post-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.post-detail-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--primary);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+}
+.post-detail-username {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.15rem;
+}
+.post-detail-date {
+  color: #888;
+  font-size: 0.97rem;
+  margin-left: auto;
+}
+.post-detail-content {
+  font-size: 1.13rem;
+  margin-bottom: 1.2rem;
+  color: var(--secondary);
+}
+.post-detail-image {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 1rem;
+  margin-bottom: 1.2rem;
+  border: 2px solid var(--primary);
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+}
+.post-detail-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.post-detail-actions .btn {
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.comments-card {
+  border-radius: 1.1rem;
+  box-shadow: 0 2px 12px rgba(20,184,166,0.07);
+  border: 2px solid #e0e0e0;
+  background: #f8fafc;
+  margin-bottom: 2rem;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+}
+.comment-form {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+}
+.comment-form textarea {
+  flex: 1 1 0;
+  border-radius: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  padding: 0.7rem 1rem;
+  font-size: 1.08rem;
+  resize: none;
+  background: #fff;
+  color: var(--text);
+}
+.comment-form button {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 2rem;
+  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  transition: background 0.2s;
+}
+.comment-form button:hover {
+  background: var(--secondary);
+}
+.comment-list {
+  margin-top: 1.2rem;
+}
+.comment-item {
+  background: var(--white);
+  border-radius: 0.7rem;
+  box-shadow: 0 1px 4px rgba(20,184,166,0.04);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  background: #fff;
+}
+.comment-content {
+  flex: 1 1 0;
+}
+.comment-username {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 1.01rem;
+}
+.comment-date {
+  color: #888;
+  font-size: 0.93rem;
+  margin-left: 0.5rem;
+}
+.comment-input {
+  border-radius: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: var(--text);
+  font-size: 1.08rem;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: none;
+}
+.comment-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+  background: var(--white);
+  outline: none;
+}
+.post-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  color: var(--primary);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 2.1rem;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 1.2rem;
+  margin-left: 0.2rem;
+  transition: color 0.18s, background 0.18s;
+  cursor: pointer;
+}
+.post-back-btn:hover {
+  color: var(--secondary);
+  background: rgba(20,184,166,0.07);
+}
+</style>
 <div class="container mt-4">
+  <button class="post-back-btn" onclick="window.location.href='{% url 'posts:feed' %}'">
+    <i class="fa fa-arrow-left"></i>
+  </button>
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-2">
-            <img src="{{ post.user.profile.profile_pic.url }}" class="rounded-circle me-2" width="40" height="40">
-            <a href="{% url 'users:profile' post.user.username %}" class="fw-bold">{{ post.user.username }}</a>
-            <span class="text-muted ms-2 small">{{ post.created_at|date:'M d, H:i' }}</span>
-          </div>
-          <p>
-            {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
-          </p>
-          {% if post.image %}
-            <img src="{{ post.image.url }}" class="img-fluid rounded mb-2">
-          {% endif %}
-          <div>
-            <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm">
-              <i class="fa fa-heart"></i> {{ post.like_count }}
-            </a>
-          </div>
+      <div class="post-detail-card">
+        <div class="post-detail-header">
+          <img src="{{ post.user.profile.profile_pic.url }}" class="post-detail-avatar" alt="Profile Picture">
+          <a href="{% url 'users:profile' post.user.username %}" class="post-detail-username">{{ post.user.username }}</a>
+          <span class="post-detail-date">{{ post.created_at|date:'M d, H:i' }}</span>
+        </div>
+        <div class="post-detail-content">
+          {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+        </div>
+        {% if post.image %}
+          <img src="{{ post.image.url }}" class="post-detail-image" alt="Post Image">
+        {% endif %}
+        <div class="post-detail-actions">
+          <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm">
+            <i class="fa fa-heart"></i> {{ post.like_count }}
+          </a>
         </div>
       </div>
-      <div class="card mb-4">
-        <div class="card-body">
-          <h5>Comments ({{ post.comment_count }})</h5>
-          <form method="post">
-            {% csrf_token %}
-            {{ comment_form.content }}
-            <button type="submit" class="btn btn-primary btn-sm">Comment</button>
-          </form>
-          <hr>
+      <div class="comments-card">
+        <h5 style="color: var(--primary); font-weight: 700;">Comments ({{ post.comment_count }})</h5>
+        <form method="post" class="comment-form">
+          {% csrf_token %}
+          {{ comment_form.content }}
+          <button type="submit"><i class="fa fa-paper-plane"></i></button>
+        </form>
+        <div class="comment-list">
           {% for comment in comments %}
-            <div class="mb-2">
-              <b>{{ comment.user.username }}</b> <span class="text-muted small">{{ comment.created_at|date:'M d, H:i' }}</span><br>
-              {% autoescape off %}{{ comment.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+            <div class="comment-item">
+              <img src="{{ comment.user.profile.profile_pic.url }}" class="comment-avatar" alt="Avatar">
+              <div class="comment-content">
+                <span class="comment-username">{{ comment.user.username }}</span>
+                <span class="comment-date">{{ comment.created_at|date:'M d, H:i' }}</span><br>
+                {% autoescape off %}{{ comment.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+              </div>
             </div>
           {% empty %}
             <p>No comments yet.</p>

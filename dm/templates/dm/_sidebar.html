@@ -1,0 +1,216 @@
+<style>
+.dm-sidebar {
+  background: linear-gradient(135deg, rgba(20,184,166,0.13) 0%, #f8fafc 100%);
+  backdrop-filter: blur(6px);
+  border-right: 2px solid var(--primary);
+  box-shadow: 2px 0 16px rgba(20,184,166,0.07);
+  padding: 0;
+  overflow-y: auto;
+}
+.dm-sidebar-header {
+  padding: 1.2rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: rgba(20,184,166,0.85);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.dm-sidebar-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dm-convo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dm-convo-list li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.1rem 1.5rem 1.1rem 1.2rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.7);
+  transition: background 0.18s, border-left 0.18s, box-shadow 0.18s;
+  border-left: 4px solid transparent;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.03);
+  position: relative;
+}
+.dm-convo-list li.active {
+  background: rgba(20,184,166,0.18);
+  border-left: 4px solid var(--primary);
+  box-shadow: 0 4px 16px rgba(20,184,166,0.11);
+}
+.dm-convo-list li:hover {
+  background: rgba(20,184,166,0.10);
+  box-shadow: 0 4px 16px rgba(20,184,166,0.09);
+}
+.dm-convo-avatar-wrapper {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+}
+.dm-convo-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.10);
+  transition: border 0.2s;
+}
+.dm-convo-list li.active .dm-convo-avatar {
+  border: 3px solid var(--secondary);
+}
+.dm-online-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 13px;
+  height: 13px;
+  background: #4ade80;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(20,184,166,0.13);
+}
+.dm-convo-info {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.dm-convo-name {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.13rem;
+  margin-bottom: 0.1rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+.dm-convo-snippet {
+  color: var(--secondary);
+  font-size: 0.99rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  margin-bottom: 0.1rem;
+}
+.dm-convo-meta {
+  color: #888;
+  font-size: 0.91rem;
+  margin-left: auto;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.dm-new-msg-btn {
+  background: var(--primary) !important;
+  color: var(--white) !important;
+  border-radius: 50% !important;
+  width: 42px;
+  height: 42px;
+  font-size: 1.7rem;
+  font-weight: bold;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.09);
+  border: none;
+  padding: 0;
+  transition: background 0.18s, color 0.18s;
+}
+.dm-new-msg-btn:hover {
+  background: var(--secondary) !important;
+  color: var(--white) !important;
+}
+.dm-new-msg-btn span {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+</style>
+<div class="dm-sidebar">
+  <div class="dm-sidebar-header dm-sidebar-header-flex">
+    <span><i class="fa fa-comments me-2"></i> Messages</span>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <a href="{% url 'dm:send' %}" class="btn btn-sm btn-main dm-new-msg-btn">
+        <span>+</span>
+      </a>
+      <button id="dm-sidebar-refresh" class="btn btn-sm btn-outline-secondary" style="border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0; border: 1.5px solid var(--primary);"><i class="fa fa-sync"></i></button>
+    </div>
+  </div>
+  <ul class="dm-convo-list">
+    {% for msg in conversations %}
+      {% if other_user %}
+        {% if msg.sender != user %}
+          {% if msg.sender.username == other_user.username %}
+            <li class="active"
+          {% else %}
+            <li
+          {% endif %}
+        {% else %}
+          {% if msg.recipient.username == other_user.username %}
+            <li class="active"
+          {% else %}
+            <li
+          {% endif %}
+        {% endif %}
+      {% else %}
+        <li
+      {% endif %}
+        onclick="window.location='{% if msg.sender != user %}{% url 'dm:thread' msg.sender.username %}{% else %}{% url 'dm:thread' msg.recipient.username %}{% endif %}'">
+        <div class="dm-convo-avatar-wrapper">
+          {% if msg.sender != user %}
+            <img src="{{ msg.sender.profile.profile_pic.url }}" class="dm-convo-avatar" alt="Avatar">
+            <span class="dm-online-dot"></span>
+          {% else %}
+            <img src="{{ msg.recipient.profile.profile_pic.url }}" class="dm-convo-avatar" alt="Avatar">
+            <span class="dm-online-dot"></span>
+          {% endif %}
+        </div>
+        <div class="dm-convo-info">
+          <div class="dm-convo-name">{% if msg.sender != user %}{{ msg.sender.username }}{% else %}{{ msg.recipient.username }}{% endif %}</div>
+          <div class="dm-convo-snippet">{{ msg.content|truncatechars:32 }}</div>
+        </div>
+        <div class="dm-convo-meta">
+          <span>{{ msg.timestamp|date:'M d, H:i' }}</span>
+          {% if not msg.is_read and msg.recipient == user %}
+            <span class="badge bg-info ms-1">New</span>
+          {% endif %}
+        </div>
+      </li>
+    {% empty %}
+      <li class="text-muted text-center py-5">No messages.</li>
+    {% endfor %}
+  </ul>
+</div>
+<script>
+function refreshSidebar() {
+  fetch(window.location.pathname, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+    .then(res => res.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newSidebar = doc.querySelector('.dm-sidebar');
+      if (newSidebar) {
+        document.querySelector('.dm-sidebar').innerHTML = newSidebar.innerHTML;
+      }
+    });
+}
+document.getElementById('dm-sidebar-refresh').addEventListener('click', refreshSidebar);
+setInterval(refreshSidebar, 15000);
+</script> 

@@ -5,10 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .forms import UserRegisterForm, UserLoginForm, ProfileUpdateForm
 from .models import Profile
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound, JsonResponse
 from django.urls import reverse
+from kefi_beta_version1.views import custom_404_view
+from django.contrib.auth import logout as auth_logout
 
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('posts:feed')
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
@@ -20,6 +24,10 @@ def register_view(request):
     return render(request, 'users/register.html', {'form': form})
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('posts:feed')
+    show_login_required = request.GET.get('login_required') == '1'
+    next_url = request.GET.get('next') or request.POST.get('next')
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
         if form.is_valid():
@@ -28,12 +36,14 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('core:home')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('posts:feed')
             else:
                 messages.error(request, 'Invalid username or password')
     else:
         form = UserLoginForm()
-    return render(request, 'users/login.html', {'form': form})
+    return render(request, 'users/login.html', {'form': form, 'show_login_required': show_login_required, 'next': next_url})
 
 @login_required
 def logout_view(request):
@@ -41,8 +51,9 @@ def logout_view(request):
     messages.info(request, 'You have been logged out.')
     return redirect('users:login')
 
-@login_required
 def profile_view(request, username):
+    if not request.user.is_authenticated:
+        return redirect(f"/users/login/?next=/users/profile/{username}/&login_required=1")
     user_obj = get_object_or_404(User, username=username)
     profile = user_obj.profile
     # Only show unblocked posts to everyone, including the owner
@@ -55,6 +66,8 @@ def profile_view(request, username):
 
 @login_required
 def edit_profile_view(request):
+    if not request.user.is_authenticated:
+        return custom_404_view(request)
     profile = request.user.profile
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
@@ -68,20 +81,49 @@ def edit_profile_view(request):
 
 @login_required
 def follow_view(request, username):
+    if not request.user.is_authenticated:
+        return custom_404_view(request)
     target_user = get_object_or_404(User, username=username)
     target_profile = target_user.profile
     user_profile = request.user.profile
     if target_profile != user_profile:
         user_profile.following.add(target_profile)  # Add Profile, not User!
         messages.success(request, f'You are now following {target_user.username}.')
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
     return redirect('users:profile', username=username)
 
 @login_required
 def unfollow_view(request, username):
+    if not request.user.is_authenticated:
+        return custom_404_view(request)
     target_user = get_object_or_404(User, username=username)
     target_profile = target_user.profile
     user_profile = request.user.profile
     if target_profile != user_profile:
         user_profile.following.remove(target_profile)  # Remove Profile, not User!
         messages.info(request, f'You have unfollowed {target_user.username}.')
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
     return redirect('users:profile', username=username)
+
+@login_required
+def deactivate_account_view(request):
+    if request.method == 'POST':
+        user = request.user
+        user.is_active = False
+        user.save()
+        auth_logout(request)
+        messages.info(request, 'Your account has been deactivated.')
+        return redirect('users:login')
+    return render(request, 'users/deactivate_account.html')
+
+@login_required
+def delete_account_view(request):
+    if request.method == 'POST':
+        user = request.user
+        auth_logout(request)
+        user.delete()
+        messages.info(request, 'Your account has been deleted.')
+        return redirect('users:register')
+    return render(request, 'users/delete_account.html')

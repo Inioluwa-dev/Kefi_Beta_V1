@@ -1,51 +1,214 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load highlight %}
+{% block extra_head %}
+<style>
+.profile-bg {
+  background: linear-gradient(135deg, var(--primary) 60%, var(--secondary) 100%);
+  border-radius: 1.5rem;
+  min-height: 320px;
+  margin-bottom: 2rem;
+  position: relative;
+  box-shadow: 0 4px 32px rgba(20,184,166,0.10);
+}
+.profile-cover-img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 1.5rem 1.5rem 0 0;
+  opacity: 0.85;
+}
+.profile-avatar-floating {
+  position: absolute;
+  left: 50%;
+  top: 160px;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 6px solid var(--white);
+  box-shadow: 0 8px 32px rgba(20,184,166,0.18);
+  object-fit: cover;
+  background: var(--white);
+}
+.profile-card-glass {
+  background: rgba(255,255,255,0.85);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(20,184,166,0.13);
+  border: 2px solid var(--primary);
+  padding: 3.5rem 2rem 2rem 2rem;
+  margin-top: 90px;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(6px);
+}
+.profile-card-glass h3 {
+  color: var(--primary);
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.profile-card-glass .fa-user-circle {
+  color: var(--primary);
+}
+.profile-card-glass .fa-map-marker-alt {
+  color: var(--secondary);
+}
+.profile-card-glass .btn-outline-primary {
+  border-color: var(--primary);
+  color: var(--primary);
+  transition: background 0.2s, color 0.2s;
+}
+.profile-card-glass .btn-outline-primary:hover {
+  background: var(--primary);
+  color: var(--white);
+}
+.profile-card-glass .btn-success, .profile-card-glass .btn-danger, .profile-card-glass .btn-warning {
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+.profile-card-glass .btn-success {
+  background: var(--primary);
+  color: var(--white);
+}
+.profile-card-glass .btn-success:hover {
+  background: var(--secondary);
+  color: var(--white);
+}
+.profile-card-glass .btn-danger {
+  background: #e63946;
+  color: var(--white);
+}
+.profile-card-glass .btn-warning {
+  background: #ffe066;
+  color: var(--secondary);
+}
+.profile-card-glass .btn-warning:hover {
+  background: #ffd43b;
+  color: var(--secondary);
+}
+.profile-card-glass .btn-outline-primary:focus, .profile-card-glass .btn-success:focus, .profile-card-glass .btn-danger:focus, .profile-card-glass .btn-warning:focus {
+  box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+}
+.profile-actions {
+  margin-bottom: 1.2rem;
+}
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+  margin-bottom: 1.2rem;
+  gap: 1rem;
+}
+.profile-stats .stat {
+  text-align: center;
+  background: rgba(20,184,166,0.09);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  min-width: 100px;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.07);
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.profile-stats .stat:hover {
+  background: rgba(20,184,166,0.18);
+  box-shadow: 0 4px 16px rgba(20,184,166,0.13);
+}
+.profile-stats .stat .fw-bold {
+  color: var(--primary);
+  font-size: 1.4rem;
+}
+.profile-stats .stat .label {
+  color: var(--secondary);
+  font-size: 1rem;
+}
+.profile-bio {
+  color: var(--secondary);
+  font-size: 1.12rem;
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+}
+.profile-posts-title {
+  color: var(--primary);
+  font-weight: 700;
+  margin-top: 2rem;
+}
+.profile-post-card {
+  border: 2px solid var(--primary);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 12px rgba(20,184,166,0.07);
+  margin-bottom: 2rem;
+  background: var(--white);
+}
+.profile-post-card .fa-comment, .profile-post-card .fa-heart {
+  color: var(--primary);
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="container mt-5">
   <div class="row">
     <div class="col-md-4 text-center">
-      {% if profile.cover_image %}
-        <div class="mb-3">
-          <img src="{{ profile.cover_image.url }}" class="img-fluid rounded shadow-sm" style="max-height:180px; object-fit:cover; width:100%;" alt="Cover Image">
-        </div>
-      {% endif %}
-      <div class="card p-3 shadow-sm rounded-4">
-        <img src="{{ profile.profile_pic.url }}" class="rounded-circle mb-3 border border-3 border-primary" width="120" height="120" alt="Profile Picture">
-        <h3 class="fw-bold">{{ user_obj.username }}</h3>
-        <p class="text-muted small mb-1">{{ profile.location }}</p>
-        <p class="mb-2">{{ profile.bio }}</p>
+      <div class="profile-bg">
+        {% if profile.cover_image %}
+          <img src="{{ profile.cover_image.url }}" class="profile-cover-img" alt="Cover Image">
+        {% endif %}
+        <img src="{{ profile.profile_pic.url }}" class="profile-avatar-floating" alt="Profile Picture">
+      </div>
+      <div class="profile-card-glass">
+        <h3 class="fw-bold mb-1"><i class="fa fa-user-circle icon"></i> {{ user_obj.username }}</h3>
+        <p class="text-muted small mb-1"><i class="fa fa-map-marker-alt"></i> {{ profile.location }}</p>
+        <p class="profile-bio">{{ profile.bio }}</p>
+        {% if profile.is_private %}
+          <span class="badge bg-warning text-dark mb-2">Private</span>
+        {% endif %}
+        {% if profile.links %}
+          <div class="mb-2">
+            <strong>Links:</strong>
+            <ul class="list-unstyled mb-0">
+              {% for link in profile.links.splitlines %}
+                {% if link %}
+                  <li><a href="{{ link }}" target="_blank" rel="noopener" style="color: var(--primary); word-break: break-all;">{{ link }}</a></li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        <div class="profile-actions">
         {% if user.is_authenticated and user.username != user_obj.username %}
           {% if profile in user.profile.following.all %}
             <form method="post" action="{% url 'users:unfollow' user_obj.username %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-danger btn-sm w-100">Unfollow</button>
+              <button type="submit" class="btn btn-danger btn-sm w-100 mb-2"><i class="fa fa-user-minus"></i> Unfollow</button>
             </form>
           {% else %}
             <form method="post" action="{% url 'users:follow' user_obj.username %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-success btn-sm w-100">Follow</button>
+              <button type="submit" class="btn btn-success btn-sm w-100 mb-2"><i class="fa fa-user-plus"></i> Follow</button>
             </form>
           {% endif %}
-          <a href="{% url 'posts:report_user' user_obj.username %}" class="btn btn-warning btn-sm w-100 mb-2">Report User</a>
+          <a href="{% url 'posts:report_user' user_obj.username %}" class="btn btn-warning btn-sm w-100 mb-2"><i class="fa fa-flag"></i> Report User</a>
         {% elif user.is_authenticated and user.username == user_obj.username %}
-          <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary btn-sm w-100">Edit Profile</a>
+          <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary btn-sm w-100 mb-2"><i class="fa fa-edit"></i> Edit Profile</a>
         {% endif %}
-        <div class="d-flex justify-content-between mt-3">
-          <div>
-            <span class="fw-bold">{{ profile.followers_count }}</span><br><span class="text-muted small">Followers</span>
+        </div>
+        <div class="profile-stats">
+          <div class="stat">
+            <span class="fw-bold">{{ profile.followers_count }}</span><br><span class="label">Followers</span>
           </div>
-          <div>
-            <span class="fw-bold">{{ profile.following_count }}</span><br><span class="text-muted small">Following</span>
+          <div class="stat">
+            <span class="fw-bold">{{ profile.following_count }}</span><br><span class="label">Following</span>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-8">
-      <h4 class="mb-3">Posts</h4>
+      <h4 class="mb-3 profile-posts-title"><i class="fa fa-stream"></i> Posts</h4>
       {% if posts %}
         {% for post in posts %}
-          <div class="card mb-4 shadow-sm rounded-4">
+          <div class="card profile-post-card">
             <div class="card-body">
               <div class="d-flex align-items-center mb-2">
                 <img src="{{ user_obj.profile.profile_pic.url }}" class="rounded-circle me-2" width="36" height="36">

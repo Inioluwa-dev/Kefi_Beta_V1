@@ -1,0 +1,33 @@
+{% load highlight %}
+<div class="card mb-4 shadow-lg rounded-4 border-0 post-card" style="border: 2px solid var(--primary) !important; background: var(--white); overflow: hidden;">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center mb-3">
+      <img src="{{ post.user.profile.profile_pic.url }}" class="rounded-circle me-2 border border-2" style="border-color: var(--primary) !important;" width="40" height="40">
+      <a href="{% url 'users:profile' post.user.username %}" class="fw-bold text-decoration-none" style="color: var(--primary);">{{ post.user.username }}</a>
+      <span class="ms-2 small" style="color: var(--secondary);">{{ post.created_at|date:'M d, H:i' }}</span>
+    </div>
+    <p class="fs-5 mb-3">
+      {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
+    </p>
+    {% if post.image %}
+      <div class="w-100 mb-3 d-flex justify-content-center align-items-center">
+        <img src="{{ post.image.url }}" class="img-fluid rounded-4 shadow-sm post-image" style="width: 100%; max-height: 350px; object-fit: cover; border: 2px solid var(--primary); background: #f8fafc;">
+      </div>
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="d-flex gap-2">
+        <a href="{% url 'posts:post_detail' post.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill" style="border-color: var(--primary); color: var(--primary); background: rgba(20,184,166,0.07);"><i class="fa fa-comment"></i> {{ post.comment_count }}</a>
+        <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm rounded-pill" style="border-color: var(--primary); color: var(--primary); background: rgba(20,184,166,0.07);"><i class="fa fa-heart"></i> {{ post.like_count }}</a>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-light btn-sm rounded-circle" type="button" id="dropdownMenuButton{{ post.pk }}" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid var(--primary); color: var(--primary); background: rgba(20,184,166,0.07);">
+          <i class="fa fa-ellipsis-h"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ post.pk }}">
+          <li><a class="dropdown-item" href="#" onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri|add:post.get_absolute_url }}'); return false;">Share</a></li>
+          <li><a class="dropdown-item text-danger" href="{% url 'posts:report_post' post.pk %}">Report</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div> 

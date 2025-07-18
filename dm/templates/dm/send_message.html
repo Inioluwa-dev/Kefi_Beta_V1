@@ -1,11 +1,114 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-  <h2>Send New Message</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Send</button>
-  </form>
+<style>
+.send-msg-card {
+  background: var(--white);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(20,184,166,0.09);
+  border: 2px solid var(--primary);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-top: 2.5rem;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.send-msg-title {
+  text-align: center;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+.send-msg-form label {
+  font-weight: 500;
+  color: var(--secondary);
+}
+.send-msg-form .form-control {
+  border-radius: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  margin-bottom: 1.2rem;
+}
+.send-msg-form .form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+}
+.send-msg-btn {
+  width: 100%;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 2rem;
+  font-weight: 600;
+  padding: 0.7rem 0;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.send-msg-btn:hover {
+  background: var(--secondary);
+  color: var(--white);
+}
+.send-msg-input {
+  border-radius: 0.7rem;
+  border: 1.5px solid #d1d5db;
+  background: #f8fafc;
+  color: var(--text);
+  font-size: 1.08rem;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1.2rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: none;
+  resize: none;
+}
+.send-msg-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.15rem rgba(20,184,166,0.13);
+  background: var(--white);
+  outline: none;
+}
+.send-msg-back-btn {
+  display: flex;
+  position: relative;
+  left: 0;
+  top: 0;
+  margin-bottom: 1.2rem;
+  margin-left: 0.2rem;
+  margin-top: 1.2rem;
+  background: none;
+  color: var(--primary);
+  border: none;
+  border-radius: 0;
+  width: 44px;
+  height: 44px;
+  font-size: 2.1rem;
+  box-shadow: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.18s, background 0.18s;
+  cursor: pointer;
+}
+.send-msg-back-btn:hover {
+  color: var(--secondary);
+  background: rgba(20,184,166,0.07);
+  border-radius: 50%;
+}
+@media (max-width: 900px) {
+  .send-msg-back-btn {
+    /* No display override needed, always visible */
+  }
+}
+</style>
+<div class="container">
+  <button class="send-msg-back-btn" onclick="window.location.href='{% url 'dm:inbox' %}'">
+    <i class="fa fa-arrow-left"></i>
+  </button>
+  <div class="send-msg-card">
+    <h2 class="send-msg-title"><i class="fa fa-paper-plane"></i> Send New Message</h2>
+    <form method="post" class="send-msg-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="send-msg-btn"><i class="fa fa-paper-plane"></i> Send</button>
+    </form>
+  </div>
 </div>
 {% endblock %}
