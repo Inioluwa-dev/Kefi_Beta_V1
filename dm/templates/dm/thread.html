@@ -222,7 +222,7 @@
           <button class="dm-back-btn" onclick="document.getElementById('dm-wrapper').classList.remove('dm-mobile-chat-active')">
             <span style="font-size: 2rem; line-height: 44px; display: flex; align-items: center; justify-content: center; height: 44px;">&lt;</span>
           </button>
-          <img src="{{ other_user.profile.profile_pic.url }}" class="rounded-circle dm-header-avatar" alt="Profile Picture">
+                          <img src="{{ other_user.profile.get_profile_pic_url }}" class="rounded-circle dm-header-avatar" alt="Profile Picture">
           <span class="dm-header-username">{{ other_user.username }}</span>
         </div>
         <div class="dm-chat-body" id="dm-chat-body">

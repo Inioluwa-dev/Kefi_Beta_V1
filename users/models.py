@@ -24,6 +24,15 @@ class Profile(models.Model):
     def following_count(self):
         return self.following.count()
 
+    def get_profile_pic_url(self):
+        """Get profile picture URL with fallback to static default"""
+        if self.profile_pic and hasattr(self.profile_pic, 'url'):
+            try:
+                return self.profile_pic.url
+            except:
+                pass
+        return '/static/users/default-profile.jpg'
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.profile_pic and hasattr(self.profile_pic, 'path'):

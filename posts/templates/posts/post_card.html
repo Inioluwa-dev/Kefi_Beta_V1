@@ -2,7 +2,7 @@
 <div class="card mb-4 shadow-lg rounded-4 border-0 post-card" style="border: 2px solid var(--primary) !important; background: var(--white); overflow: hidden;">
   <div class="card-body p-4">
     <div class="d-flex align-items-center mb-3">
-      <img src="{{ post.user.profile.profile_pic.url }}" class="rounded-circle me-2 border border-2" style="border-color: var(--primary) !important;" width="40" height="40">
+      <img src="{{ post.user.profile.get_profile_pic_url }}" class="rounded-circle me-2 border border-2" style="border-color: var(--primary) !important;" width="40" height="40">
       <a href="{% url 'users:profile' post.user.username %}" class="fw-bold text-decoration-none" style="color: var(--primary);">{{ post.user.username }}</a>
       <span class="ms-2 small" style="color: var(--secondary);">{{ post.created_at|date:'M d, H:i' }}</span>
     </div>

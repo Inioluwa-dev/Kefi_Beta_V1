@@ -3,7 +3,6 @@
 {% load form_tags %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'users/edit_profile.css' %}">
-<link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-desktop/fontawesome-free-6.7.2-desktop/css/all.min.css' %}">
 <style>
 .settings-container {
   max-width: 900px;
@@ -266,7 +265,7 @@
         <div class="form-group input-icon">
           <label class="form-label">Profile Picture</label>
           <div class="profile-pic-preview">
-            <img src="{{ profile.profile_pic.url }}" alt="Profile Pic">
+                            <img src="{{ profile.get_profile_pic_url }}" alt="Profile Pic">
             <label for="id_profile_pic" class="profile-upload-btn" title="Change profile pic"><i class="fa fa-camera"></i></label>
             {{ form.profile_pic|add_class:'custom-file-input' }}
             <span class="file-badge"></span>

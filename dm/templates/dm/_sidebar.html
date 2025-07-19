@@ -194,10 +194,10 @@ document.addEventListener('DOMContentLoaded', function() {
         onclick="window.location='{% if msg.sender != user %}{% url 'dm:thread' msg.sender.username %}{% else %}{% url 'dm:thread' msg.recipient.username %}{% endif %}'">
         <div class="dm-convo-avatar-wrapper">
           {% if msg.sender != user %}
-            <img src="{{ msg.sender.profile.profile_pic.url }}" class="dm-convo-avatar" alt="Avatar">
+                                <img src="{{ msg.sender.profile.get_profile_pic_url }}" class="dm-convo-avatar" alt="Avatar">
             <span class="dm-online-dot"></span>
           {% else %}
-            <img src="{{ msg.recipient.profile.profile_pic.url }}" class="dm-convo-avatar" alt="Avatar">
+                                <img src="{{ msg.recipient.profile.get_profile_pic_url }}" class="dm-convo-avatar" alt="Avatar">
             <span class="dm-online-dot"></span>
           {% endif %}
         </div>

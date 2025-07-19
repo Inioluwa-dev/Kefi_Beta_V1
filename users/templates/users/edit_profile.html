@@ -4,7 +4,6 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'users/edit_profile.css' %}">
 <link rel="stylesheet" href="{% static 'users/camera.css' %}">
-<link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-desktop/fontawesome-free-6.7.2-desktop/css/all.min.css' %}">
 
 <div class="edit-profile-container">
     <h2 class="edit-profile-title">Edit Profile</h2>
@@ -14,7 +13,7 @@
         <div class="form-group input-icon">
             <label class="form-label">Profile Picture</label>
             <div class="profile-pic-preview">
-                <img src="{{ user.profile.profile_pic.url }}" alt="Profile Pic">
+                <img src="{{ user.profile.get_profile_pic_url }}" alt="Profile Pic">
                 <span class="profile-upload-btn" title="Take a new photo"><i class="fa fa-camera"></i></span>
                 {{ form.profile_pic|add_class:'custom-file-input' }}
                 <span class="file-badge"></span>

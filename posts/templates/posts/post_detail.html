@@ -179,7 +179,7 @@
     <div class="col-md-8">
       <div class="post-detail-card">
         <div class="post-detail-header">
-          <img src="{{ post.user.profile.profile_pic.url }}" class="post-detail-avatar" alt="Profile Picture">
+                          <img src="{{ post.user.profile.get_profile_pic_url }}" class="post-detail-avatar" alt="Profile Picture">
           <a href="{% url 'users:profile' post.user.username %}" class="post-detail-username">{{ post.user.username }}</a>
           <span class="post-detail-date">{{ post.created_at|date:'M d, H:i' }}</span>
         </div>
@@ -205,7 +205,7 @@
         <div class="comment-list">
           {% for comment in comments %}
             <div class="comment-item">
-              <img src="{{ comment.user.profile.profile_pic.url }}" class="comment-avatar" alt="Avatar">
+                              <img src="{{ comment.user.profile.get_profile_pic_url }}" class="comment-avatar" alt="Avatar">
               <div class="comment-content">
                 <span class="comment-username">{{ comment.user.username }}</span>
                 <span class="comment-date">{{ comment.created_at|date:'M d, H:i' }}</span><br>
