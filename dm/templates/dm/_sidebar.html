@@ -1,11 +1,21 @@
 <style>
 .dm-sidebar {
+  width: 320px;
   background: linear-gradient(135deg, rgba(20,184,166,0.13) 0%, #f8fafc 100%);
   backdrop-filter: blur(6px);
   border-right: 2px solid var(--primary);
   box-shadow: 2px 0 16px rgba(20,184,166,0.07);
   padding: 0;
   overflow-y: auto;
+}
+.dm-sidebar-large {
+  width: 480px !important;
+  transition: width 0.25s;
+}
+@media (max-width: 900px) {
+  .dm-sidebar, .dm-sidebar-large {
+    width: 100% !important;
+  }
 }
 .dm-sidebar-header {
   padding: 1.2rem 1.5rem 1rem 1.5rem;
@@ -143,14 +153,23 @@
   padding: 0;
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // If no conversation is selected, add .dm-sidebar-large
+  var sidebar = document.querySelector('.dm-sidebar');
+  var active = document.querySelector('.dm-convo-list li.active');
+  if (!active && sidebar) {
+    sidebar.classList.add('dm-sidebar-large');
+  }
+});
+</script>
 <div class="dm-sidebar">
   <div class="dm-sidebar-header dm-sidebar-header-flex">
     <span><i class="fa fa-comments me-2"></i> Messages</span>
-    <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <div style="display: flex; align-items: center;">
       <a href="{% url 'dm:send' %}" class="btn btn-sm btn-main dm-new-msg-btn">
         <span>+</span>
       </a>
-      <button id="dm-sidebar-refresh" class="btn btn-sm btn-outline-secondary" style="border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; padding: 0; border: 1.5px solid var(--primary);"><i class="fa fa-sync"></i></button>
     </div>
   </div>
   <ul class="dm-convo-list">
@@ -197,20 +216,4 @@
       <li class="text-muted text-center py-5">No messages.</li>
     {% endfor %}
   </ul>
-</div>
-<script>
-function refreshSidebar() {
-  fetch(window.location.pathname, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-    .then(res => res.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const newSidebar = doc.querySelector('.dm-sidebar');
-      if (newSidebar) {
-        document.querySelector('.dm-sidebar').innerHTML = newSidebar.innerHTML;
-      }
-    });
-}
-document.getElementById('dm-sidebar-refresh').addEventListener('click', refreshSidebar);
-setInterval(refreshSidebar, 15000);
-</script> 
+</div> 

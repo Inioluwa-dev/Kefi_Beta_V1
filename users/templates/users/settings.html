@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+{% load static %}
+{% load form_tags %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'users/edit_profile.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-desktop/fontawesome-free-6.7.2-desktop/css/all.min.css' %}">
+<style>
+.settings-container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: rgba(255,255,255,0.15);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+  backdrop-filter: blur(8px);
+  display: flex;
+  min-height: 600px;
+  overflow: hidden;
+}
+.settings-sidebar {
+  width: 220px;
+  background: linear-gradient(135deg, #008080 60%, #00bfae 100%);
+  color: #fff;
+  padding: 36px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.settings-sidebar .sidebar-link {
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.08rem;
+  padding: 12px 24px;
+  border-radius: 12px 0 0 12px;
+  width: 100%;
+  text-align: left;
+  transition: background 0.18s, color 0.18s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.settings-sidebar .sidebar-link.active,
+.settings-sidebar .sidebar-link:hover {
+  background: #fff;
+  color: #008080;
+}
+.settings-content {
+  flex: 1;
+  padding: 36px 40px;
+  background: rgba(255,255,255,0.85);
+  min-height: 600px;
+  position: relative;
+}
+.settings-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #008080;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.settings-actions .btn {
+  width: 100%;
+  font-size: 1.08rem;
+  padding: 12px 0;
+}
+.settings-section {
+  display: none;
+  animation: fadeInTab 0.3s;
+}
+.settings-section.active {
+  display: block;
+}
+@keyframes fadeInTab {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+@media (max-width: 900px) {
+  .settings-container {
+    flex-direction: column;
+    min-width: 0;
+  }
+  .settings-sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    border-radius: 24px 24px 0 0;
+    padding: 18px 0;
+  }
+  .settings-sidebar .sidebar-link {
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 1rem;
+    justify-content: center;
+  }
+  .settings-content {
+    padding: 24px 8vw;
+  }
+}
+@media (max-width: 600px) {
+  .settings-container {
+    border-radius: 0;
+    margin: 0;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  .settings-sidebar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 10px 0 10px 0;
+    border-radius: 0;
+    scrollbar-width: thin;
+  }
+  .settings-sidebar .sidebar-link {
+    min-width: 90px;
+    font-size: 0.98rem;
+    padding: 8px 8px;
+    border-radius: 8px;
+    justify-content: center;
+  }
+  .settings-content {
+    padding: 16px 2vw;
+    min-height: 0;
+  }
+  .settings-section-title {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+  .form-group.input-icon, .switch-group.custom-switch, .button-row {
+    margin-bottom: 14px;
+  }
+  .other-settings-cards {
+    gap: 10px;
+  }
+  .other-card {
+    padding: 16px 10px 12px 10px;
+    font-size: 0.98rem;
+  }
+}
+@media (max-width: 900px) {
+  .settings-sidebar { display: none; }
+  .settings-mobile-list {
+    display: block;
+    background: #fff;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 2px 12px rgba(0,128,128,0.07);
+    margin-bottom: 18px;
+    padding: 0;
+  }
+  .settings-mobile-list .mobile-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 24px;
+    border-bottom: 1px solid #e0f0f0;
+    font-size: 1.18rem;
+    color: #008080;
+    background: #f6fefe;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.18s;
+    border-radius: 0;
+    min-height: 56px;
+    user-select: none;
+  }
+  .settings-mobile-list .mobile-list-item:last-child {
+    border-bottom: none;
+  }
+  .settings-mobile-list .mobile-list-item:hover {
+    background: #e0f0f0;
+  }
+  .settings-content {
+    padding: 0 2vw;
+  }
+  .settings-section {
+    display: none !important;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(0,128,128,0.07);
+    margin-bottom: 18px;
+    padding: 18px 10px 12px 10px;
+    animation: fadeSlideIn 0.35s cubic-bezier(.4,0,.2,1);
+    min-height: 60vh;
+    position: relative;
+  }
+  .settings-section.mobile-active {
+    display: block !important;
+  }
+  .settings-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #008080;
+    background: #fff;
+    border: none;
+    font-size: 1.18rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+    cursor: pointer;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 18px 0 10px 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 2px 8px rgba(0,128,128,0.04);
+  }
+  .settings-section-title {
+    font-size: 1.25rem;
+    margin-bottom: 18px;
+    position: sticky;
+    top: 54px;
+    background: #fff;
+    z-index: 9;
+    padding: 8px 0 8px 0;
+  }
+}
+@media (min-width: 901px) {
+  .settings-mobile-list { display: none; }
+  .settings-back-btn { display: none !important; }
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: none; }
+}
+</style>
+<h2 class="text-center mt-4 mb-3" style="color:#008080;font-weight:800;letter-spacing:1px;">Settings</h2>
+<div class="settings-container">
+  <!-- Mobile settings list -->
+  <div class="settings-mobile-list" style="display:none;">
+    <div class="mobile-list-item" data-mobile-tab="profile"><i class="fa fa-user"></i> Profile <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="account"><i class="fa fa-cog"></i> Account <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="privacy"><i class="fa fa-shield-alt"></i> Privacy <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="security"><i class="fa fa-lock"></i> Security <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="appearance"><i class="fa fa-paint-brush"></i> Appearance <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="language"><i class="fa fa-language"></i> Language <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="notifications"><i class="fa fa-bell"></i> Notifications <i class="fa fa-chevron-right"></i></div>
+    <div class="mobile-list-item" data-mobile-tab="other"><i class="fa fa-sliders-h"></i> Other <i class="fa fa-chevron-right"></i></div>
+  </div>
+  <div class="settings-sidebar">
+    <a href="#profile" class="sidebar-link active" data-tab="profile"><i class="fa fa-user"></i> Profile</a>
+    <a href="#account" class="sidebar-link" data-tab="account"><i class="fa fa-cog"></i> Account</a>
+    <a href="#privacy" class="sidebar-link" data-tab="privacy"><i class="fa fa-shield-alt"></i> Privacy</a>
+    <a href="#security" class="sidebar-link" data-tab="security"><i class="fa fa-lock"></i> Security</a>
+    <a href="#appearance" class="sidebar-link" data-tab="appearance"><i class="fa fa-paint-brush"></i> Appearance</a>
+    <a href="#language" class="sidebar-link" data-tab="language"><i class="fa fa-language"></i> Language</a>
+    <a href="#notifications" class="sidebar-link" data-tab="notifications"><i class="fa fa-bell"></i> Notifications</a>
+    <a href="#other" class="sidebar-link" data-tab="other"><i class="fa fa-sliders-h"></i> Other</a>
+    <a href="#report" class="sidebar-link" data-tab="report"><i class="fa fa-flag"></i> Report</a>
+  </div>
+  <div class="settings-content">
+    <button class="settings-back-btn" style="display:none;"><i class="fa fa-chevron-left"></i> Back to Settings</button>
+    <div id="profile" class="settings-section active">
+      <div class="settings-section-title"><i class="fa fa-user"></i> Edit Profile</div>
+      <form method="post" enctype="multipart/form-data" autocomplete="off" class="edit-profile-form">
+        {% csrf_token %}
+        <div class="form-group input-icon">
+          <label class="form-label">Profile Picture</label>
+          <div class="profile-pic-preview">
+            <img src="{{ profile.profile_pic.url }}" alt="Profile Pic">
+            <label for="id_profile_pic" class="profile-upload-btn" title="Change profile pic"><i class="fa fa-camera"></i></label>
+            {{ form.profile_pic|add_class:'custom-file-input' }}
+            <span class="file-badge"></span>
+          </div>
+        </div>
+        <div class="form-group input-icon">
+          <label class="form-label">Cover Image</label>
+          <div class="cover-upload-row">
+            {% if profile.cover_image %}
+              <div class="cover-img-blur" style="background-image:url('{{ profile.cover_image.url }}');"></div>
+              <img src="{{ profile.cover_image.url }}" alt="Cover Image" class="cover-img-preview">
+            {% else %}
+              <div class="cover-img-placeholder">No cover image</div>
+            {% endif %}
+            <label for="id_cover_image" class="cover-upload-btn" title="Change cover image"><i class="fa fa-camera"></i></label>
+            {{ form.cover_image|add_class:'custom-file-input' }}
+            <span class="file-badge"></span>
+          </div>
+        </div>
+        <div class="form-group input-icon">
+          <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+          <span class="icon"><i class="fa fa-user"></i></span>
+          {{ form.bio|add_class:'form-control' }}
+          {% if form.bio.errors %}<div class="form-error">{{ form.bio.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group input-icon">
+          <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+          <span class="icon"><i class="fa fa-map-marker-alt"></i></span>
+          {{ form.location|add_class:'form-control' }}
+          {% if form.location.errors %}<div class="form-error">{{ form.location.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group input-icon">
+          <label for="{{ form.links.id_for_label }}" class="form-label">Links (one per line, e.g. https://yourwebsite.com)</label>
+          <span class="icon"><i class="fa fa-link"></i></span>
+          {{ form.links|add_class:'form-control' }}
+          {% if form.links.errors %}<div class="form-error">{{ form.links.errors }}</div>{% endif %}
+        </div>
+        <div class="switch-group custom-switch">
+          <input type="checkbox" name="is_private" id="id_is_private" class="custom-switch-input" {% if form.is_private.value %}checked{% endif %}>
+          <label for="id_is_private" class="custom-switch-label">Private profile</label>
+          {% if form.is_private.errors %}<div class="form-error">{{ form.is_private.errors }}</div>{% endif %}
+        </div>
+        <div class="button-row">
+          <button type="submit" class="btn btn-save"><i class="fa fa-save"></i> Save Changes</button>
+        </div>
+      </form>
+    </div>
+    <div id="account" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-cog"></i> Account Settings</div>
+      <div class="settings-actions">
+        <a href="{% url 'password_reset' %}" class="btn btn-outline-primary"><i class="fa fa-key"></i> Change Password</a>
+        <a href="{% url 'users:deactivate_account' %}" class="btn btn-deactivate"><i class="fa fa-user-slash"></i> Deactivate Account</a>
+        <a href="{% url 'users:delete_account' %}" class="btn btn-delete"><i class="fa fa-trash"></i> Delete Account</a>
+        <a href="#" class="btn btn-outline-primary disabled"><i class="fa fa-envelope"></i> Change Email <span class="badge bg-secondary ms-2">Soon</span></a>
+        <a href="#" class="btn btn-outline-primary disabled"><i class="fa fa-user-edit"></i> Change Username <span class="badge bg-secondary ms-2">Soon</span></a>
+        <a href="#" class="btn btn-outline-primary disabled"><i class="fa fa-desktop"></i> Manage Sessions <span class="badge bg-secondary ms-2">Soon</span></a>
+      </div>
+    </div>
+    <div id="privacy" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-shield-alt"></i> Privacy Settings</div>
+      <div class="alert alert-info">Privacy controls coming soon (e.g., who can see your profile, posts, DMs).</div>
+    </div>
+    <div id="security" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-lock"></i> Security Settings</div>
+      <div class="alert alert-info">Security features coming soon (e.g., 2FA, login history).</div>
+    </div>
+    <div id="appearance" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-paint-brush"></i> Appearance</div>
+      <div class="alert alert-info">Theme and appearance settings coming soon (e.g., dark mode, font size).</div>
+    </div>
+    <div id="language" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-language"></i> Language</div>
+      <div class="alert alert-info">Language selection coming soon.</div>
+    </div>
+    <div id="notifications" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-bell"></i> Notification Settings</div>
+      <div class="alert alert-info">Notification settings coming soon.</div>
+    </div>
+    <div id="other" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-sliders-h"></i> Other Settings</div>
+      <div class="other-settings-cards">
+        <div class="other-card">
+          <h5 class="fw-bold mb-2"><i class="fa fa-info-circle text-primary"></i> App Info</h5>
+          <ul class="list-unstyled mb-3">
+            <li><strong>Version:</strong> 1.0.0-beta</li>
+            <li><strong>Last Updated:</strong> July 2025</li>
+          </ul>
+        </div>
+        <div class="other-card">
+          <h5 class="fw-bold mb-2"><i class="fa fa-file-contract text-primary"></i> Legal & Policies</h5>
+          <ul class="list-unstyled mb-3">
+            <li><a href="{% url 'users:terms_of_service' %}" class="other-link" target="_blank" rel="noopener"><i class="fa fa-gavel"></i> Terms of Service</a></li>
+            <li><a href="{% url 'users:privacy_policy' %}" class="other-link" target="_blank" rel="noopener"><i class="fa fa-user-secret"></i> Privacy Policy</a></li>
+            <li><a href="{% url 'users:cookie_policy' %}" class="other-link" target="_blank" rel="noopener"><i class="fa fa-cookie-bite"></i> Cookie Policy</a></li>
+          </ul>
+        </div>
+        <div class="other-card">
+          <h5 class="fw-bold mb-2"><i class="fa fa-comment-dots text-primary"></i> Feedback</h5>
+          <p>We value your feedback! <a href="mailto: misterhge@gmail.com" class="other-link">Send us your thoughts</a> or report a bug.</p>
+        </div>
+        <div class="other-card">
+          <h5 class="fw-bold mb-2"><i class="fa fa-download text-primary"></i> Download Your Data</h5>
+          <button class="btn btn-outline-primary other-download-btn" disabled><i class="fa fa-download"></i> Download (coming soon)</button>
+        </div>
+      </div>
+    </div>
+    <div id="report" class="settings-section">
+      <div class="settings-section-title"><i class="fa fa-flag"></i> Report</div>
+      <div class="settings-actions">
+        <form id="report-user-form" class="d-flex flex-column align-items-start" method="post" autocomplete="off" style="gap: 1rem;">
+          {% csrf_token %}
+          <label for="report-username" class="form-label">Enter the username you want to report:</label>
+          <input type="text" id="report-username" name="report_username" class="form-control" placeholder="Username" required style="max-width: 320px;">
+          <div id="report-username-error" class="text-danger small" style="display:none;"></div>
+          <button type="submit" class="btn btn-warning"><i class="fa fa-flag"></i> Next: Report User</button>
+        </form>
+      </div>
+    </div>
+    <style>
+    .other-settings-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      margin-top: 18px;
+    }
+    .other-card {
+      background: linear-gradient(135deg, #f6fefe 60%, #e0f0f0 100%);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0,128,128,0.07);
+      border: 2px solid #00bfae22;
+      padding: 28px 28px 20px 28px;
+      min-width: 220px;
+      flex: 1 1 260px;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      transition: box-shadow 0.2s, border 0.2s, transform 0.18s;
+      margin-bottom: 8px;
+    }
+    .other-card:hover {
+      box-shadow: 0 6px 24px rgba(0,128,128,0.13);
+      border: 2px solid #00bfae;
+      transform: translateY(-2px) scale(1.025);
+    }
+    .other-card h5 i,
+    .other-card .fa {
+      color: #008080 !important;
+    }
+    .other-link {
+      color: #008080;
+      text-decoration: underline;
+      font-weight: 500;
+      transition: color 0.18s;
+      margin-left: 4px;
+    }
+    .other-link:hover {
+      color: #00bfae;
+      text-decoration: underline;
+    }
+    .other-download-btn {
+      margin-top: 8px;
+      border-radius: 8px;
+      font-size: 1.08rem;
+      padding: 10px 22px;
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: #fff !important;
+      color: #008080 !important;
+      border: 2px solid #008080 !important;
+      box-shadow: 0 2px 8px rgba(0,128,128,0.07);
+      transition: background 0.18s, color 0.18s, border 0.18s;
+    }
+    .other-download-btn:hover {
+      background: #f6fefe !important;
+      color: #00bfae !important;
+      border: 2px solid #00bfae !important;
+    }
+    @media (max-width: 900px) {
+      .other-settings-cards {
+        flex-direction: column;
+        gap: 18px;
+      }
+      .other-card {
+        max-width: 100%;
+        min-width: 0;
+        width: 100%;
+      }
+    }
+    </style>
+  </div>
+</div>
+<script>
+// Tabbed navigation logic
+const sidebarLinks = document.querySelectorAll('.sidebar-link');
+const sections = document.querySelectorAll('.settings-section');
+sidebarLinks.forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    // Remove active from all links
+    sidebarLinks.forEach(l => l.classList.remove('active'));
+    // Hide all sections
+    sections.forEach(s => s.classList.remove('active'));
+    // Activate clicked link and corresponding section
+    this.classList.add('active');
+    const tab = this.getAttribute('data-tab');
+    const section = document.getElementById(tab);
+    if (section) section.classList.add('active');
+  });
+});
+// File input change handlers
+const profilePicInput = document.getElementById('id_profile_pic');
+const profilePicBadge = document.querySelector('.profile-pic-preview .file-badge');
+if (profilePicInput) {
+    profilePicInput.addEventListener('change', function() {
+        profilePicBadge.textContent = this.files[0] ? this.files[0].name : '';
+    });
+}
+const coverImageInput = document.getElementById('id_cover_image');
+const coverImageBadge = document.querySelector('.cover-upload-row .file-badge');
+if (coverImageInput) {
+    coverImageInput.addEventListener('change', function() {
+        coverImageBadge.textContent = this.files[0] ? this.files[0].name : '';
+    });
+}
+// Mobile drill-down navigation
+function isMobileSettings() {
+  return window.matchMedia('(max-width: 900px)').matches;
+}
+const mobileList = document.querySelector('.settings-mobile-list');
+const backBtn = document.querySelector('.settings-back-btn');
+const allSections = document.querySelectorAll('.settings-section');
+function showMobileList() {
+  if (mobileList) mobileList.style.display = 'block';
+  if (backBtn) backBtn.style.display = 'none';
+  allSections.forEach(s => s.classList.remove('mobile-active'));
+}
+function showMobileSection(tab) {
+  if (mobileList) mobileList.style.display = 'none';
+  if (backBtn) backBtn.style.display = 'flex';
+  allSections.forEach(s => s.classList.remove('mobile-active'));
+  const section = document.getElementById(tab);
+  if (section) section.classList.add('mobile-active');
+}
+if (isMobileSettings()) {
+  showMobileList();
+  if (mobileList) {
+    mobileList.querySelectorAll('.mobile-list-item').forEach(item => {
+      item.addEventListener('click', function() {
+        showMobileSection(this.getAttribute('data-mobile-tab'));
+      });
+    });
+  }
+  if (backBtn) {
+    backBtn.addEventListener('click', showMobileList);
+  }
+}
+window.addEventListener('resize', function() {
+  if (isMobileSettings()) {
+    showMobileList();
+  } else {
+    if (mobileList) mobileList.style.display = 'none';
+    if (backBtn) backBtn.style.display = 'none';
+    allSections.forEach(s => s.classList.remove('mobile-active'));
+  }
+});
+document.getElementById('report-user-form')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const username = document.getElementById('report-username').value.trim();
+  const errorDiv = document.getElementById('report-username-error');
+  errorDiv.style.display = 'none';
+  if (username) {
+    // AJAX call to check if user exists
+    try {
+      const resp = await fetch(`/users/exists/?username=${encodeURIComponent(username)}`);
+      const data = await resp.json();
+      if (data.exists) {
+        window.location.href = `/posts/user/${username}/report/`;
+      } else {
+        errorDiv.textContent = 'No user with that username.';
+        errorDiv.style.display = 'block';
+      }
+    } catch (err) {
+      errorDiv.textContent = 'Could not validate username. Please try again.';
+      errorDiv.style.display = 'block';
+    }
+  }
+});
+</script>
+{% endblock %}

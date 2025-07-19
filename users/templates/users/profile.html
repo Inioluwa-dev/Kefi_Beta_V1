@@ -189,7 +189,9 @@
               <button type="submit" class="btn btn-success btn-sm w-100 mb-2"><i class="fa fa-user-plus"></i> Follow</button>
             </form>
           {% endif %}
-          <a href="{% url 'posts:report_user' user_obj.username %}" class="btn btn-warning btn-sm w-100 mb-2"><i class="fa fa-flag"></i> Report User</a>
+          <a href="{% url 'dm:thread' user_obj.username %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+            <i class="fa fa-paper-plane"></i> Message
+          </a>
         {% elif user.is_authenticated and user.username == user_obj.username %}
           <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary btn-sm w-100 mb-2"><i class="fa fa-edit"></i> Edit Profile</a>
         {% endif %}

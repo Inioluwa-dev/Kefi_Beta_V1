@@ -227,18 +227,21 @@
         </div>
         <div class="dm-chat-body" id="dm-chat-body">
       {% for msg in thread_msgs %}
-            <div class="dm-message-row {% if msg.sender == user %}me{% else %}them{% endif %}">
-              <div class="dm-bubble">
-                {{ msg.content }}
-                <div class="dm-bubble-meta">{{ msg.timestamp|date:'M d, H:i' }}</div>
-              </div>
-        </div>
-      {% empty %}
-            <div class="text-center text-muted mt-5">No messages yet.</div>
-      {% endfor %}
-      <div id="dm-typing-indicator" style="display:none; color: var(--secondary); font-size: 1.01rem; margin: 0.5rem 0 0 0.5rem;"><i class="fa fa-pen-nib"></i> <span id="dm-typing-user"></span> is typing...</div>
-      <div id="dm-read-indicator" style="display:none; color: #22c55e; font-size: 0.97rem; margin: 0.5rem 0 0 0.5rem;"><i class="fa fa-check-double"></i> Seen</div>
+  <div class="dm-message-row {% if msg.sender == user %}me{% else %}them{% endif %}">
+    <div class="dm-bubble">
+      {{ msg.content }}
+      <div class="dm-bubble-meta">
+        {{ msg.timestamp|date:'H:i' }}{% if msg.sender == user %} &middot; <span style="color:#fff;">{% if msg.is_read %}Seen{% else %}Sent{% endif %}</span>{% endif %}
+      </div>
     </div>
+  </div>
+{% empty %}
+  <div class="text-center text-muted mt-5">No messages yet.</div>
+{% endfor %}
+        </div>
+        <div id="dm-typing-indicator" style="display:none; color: var(--secondary); font-size: 1.01rem; margin: 0.5rem 0 0 1.5rem; align-self: flex-start;">
+  <i class="fa fa-pen-nib"></i> <span id="dm-typing-user"></span> is typing...
+</div>
         <form class="dm-chat-form" id="dm-chat-form" autocomplete="off" onsubmit="return false;">
     {{ form.content }}
           <button type="submit"><i class="fa fa-paper-plane"></i></button>
@@ -299,8 +302,10 @@ chatSocket.onmessage = function(e) {
     if (data.sender !== me) {
       typingUserSpan.textContent = data.sender;
       typingIndicator.style.display = '';
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => { typingIndicator.style.display = 'none'; }, 2000);
+    }
+  } else if (data.type === 'not_typing') {
+    if (data.sender !== me) {
+      typingIndicator.style.display = 'none';
     }
   } else if (data.type === 'read') {
     if (data.sender !== me) {
@@ -318,7 +323,14 @@ chatForm.addEventListener('submit', function(e) {
   chatInput.focus();
 });
 chatInput.addEventListener('input', function() {
-  chatSocket.send(JSON.stringify({type: 'typing'}));
+  if (chatInput.value.trim().length > 0) {
+    chatSocket.send(JSON.stringify({type: 'typing'}));
+  } else {
+    chatSocket.send(JSON.stringify({type: 'not_typing'}));
+  }
+});
+window.addEventListener('beforeunload', function() {
+  chatSocket.send(JSON.stringify({type: 'not_typing'}));
 });
 // Mark all as read on page load
 chatSocket.addEventListener('open', function() {

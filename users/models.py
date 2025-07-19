@@ -26,15 +26,21 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.profile_pic:
-            img = Image.open(self.profile_pic.path)
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.profile_pic.path)
-        if self.cover_image:
-            img = Image.open(self.cover_image.path)
-            if img.height > 600 or img.width > 1200:
-                output_size = (1200, 600)
-                img.thumbnail(output_size)
-                img.save(self.cover_image.path)
+        if self.profile_pic and hasattr(self.profile_pic, 'path'):
+            try:
+                img = Image.open(self.profile_pic.path)
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                    img.save(self.profile_pic.path)
+            except (OSError, IOError):
+                pass  # File doesn't exist or can't be opened
+        if self.cover_image and hasattr(self.cover_image, 'path'):
+            try:
+                img = Image.open(self.cover_image.path)
+                if img.height > 600 or img.width > 1200:
+                    output_size = (1200, 600)
+                    img.thumbnail(output_size)
+                    img.save(self.cover_image.path)
+            except (OSError, IOError):
+                pass  # File doesn't exist or can't be opened

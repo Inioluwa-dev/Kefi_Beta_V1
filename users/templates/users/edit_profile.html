@@ -3,6 +3,7 @@
 {% load form_tags %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'users/edit_profile.css' %}">
+<link rel="stylesheet" href="{% static 'users/camera.css' %}">
 <link rel="stylesheet" href="{% static 'fontawesome-free-6.7.2-desktop/fontawesome-free-6.7.2-desktop/css/all.min.css' %}">
 
 <div class="edit-profile-container">
@@ -10,23 +11,29 @@
     <form method="post" enctype="multipart/form-data" autocomplete="off" class="edit-profile-form">
         {% csrf_token %}
 
-        <div class="profile-pic-preview input-icon">
-            <img src="{{ user.profile.profile_pic.url }}" alt="Profile Pic">
-            <label for="id_profile_pic" class="profile-upload-btn" title="Change profile pic"><i class="fa fa-camera"></i></label>
-            {{ form.profile_pic|add_class:'custom-file-input' }}
-            <span class="file-badge">{{ user.profile.profile_pic.url|cut:'profile_pics/' }}</span>
+        <div class="form-group input-icon">
+            <label class="form-label">Profile Picture</label>
+            <div class="profile-pic-preview">
+                <img src="{{ user.profile.profile_pic.url }}" alt="Profile Pic">
+                <span class="profile-upload-btn" title="Take a new photo"><i class="fa fa-camera"></i></span>
+                {{ form.profile_pic|add_class:'custom-file-input' }}
+                <span class="file-badge"></span>
+            </div>
         </div>
 
-        <div class="cover-upload-row input-icon">
-            {% if user.profile.cover_image %}
-                <div class="cover-img-blur" style="background-image:url('{{ user.profile.cover_image.url }}');"></div>
-                <img src="{{ user.profile.cover_image.url }}" alt="Cover Image" class="cover-img-preview">
-            {% else %}
-                <div class="cover-img-placeholder">No cover image</div>
-            {% endif %}
-            <label for="id_cover_image" class="cover-upload-btn" title="Change cover image"><i class="fa fa-image"></i></label>
-            {{ form.cover_image|add_class:'custom-file-input' }}
-            <span class="file-badge">{{ user.profile.cover_image.url|cut:'profile_covers/' }}</span>
+        <div class="form-group input-icon">
+            <label class="form-label">Cover Image</label>
+            <div class="cover-upload-row">
+                {% if user.profile.cover_image %}
+                    <div class="cover-img-blur" style="background-image:url('{{ user.profile.cover_image.url }}');"></div>
+                    <img src="{{ user.profile.cover_image.url }}" alt="Cover Image" class="cover-img-preview">
+                {% else %}
+                    <div class="cover-img-placeholder">No cover image</div>
+                {% endif %}
+                <span class="cover-upload-btn" title="Take a new cover photo"><i class="fa fa-camera"></i></span>
+                {{ form.cover_image|add_class:'custom-file-input' }}
+                <span class="file-badge"></span>
+            </div>
         </div>
 
         <div class="form-group input-icon">
@@ -60,20 +67,12 @@
     </form>
 </div>
 
+<script src="{% static 'users/camera.js' %}"></script>
 <script>
-const profilePicInput = document.getElementById('id_profile_pic');
-const profilePicBadge = document.querySelector('.profile-pic-preview .file-badge');
-if (profilePicInput) {
-    profilePicInput.addEventListener('change', function() {
-        profilePicBadge.textContent = this.files[0] ? this.files[0].name : '';
-    });
-}
-const coverImageInput = document.getElementById('id_cover_image');
-const coverImageBadge = document.querySelector('.cover-upload-row .file-badge');
-if (coverImageInput) {
-    coverImageInput.addEventListener('change', function() {
-        coverImageBadge.textContent = this.files[0] ? this.files[0].name : '';
-    });
-}
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.CameraUpload) {
+        window.cameraUpload = new CameraUpload();
+    }
+});
 </script>
 {% endblock %}

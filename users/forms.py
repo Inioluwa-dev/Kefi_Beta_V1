@@ -35,7 +35,7 @@ class CustomPasswordResetForm(DjangoPasswordResetForm):
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['bio', 'profile_pic', 'cover_image', 'location', 'links', 'is_private']
+        fields = ['bio', 'location', 'links', 'is_private']  # Exclude file fields
         widgets = {
             'bio': forms.Textarea(attrs={'class': 'form-control', 'placeholder': ' '}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
@@ -43,14 +43,38 @@ class ProfileUpdateForm(forms.ModelForm):
             'is_private': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    # Add file fields separately
+    profile_pic = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control-file'}))
+    cover_image = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control-file'}))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Add floating label support and consistent classes
         self.fields['bio'].widget.attrs.setdefault('placeholder', ' ')
         self.fields['location'].widget.attrs.setdefault('placeholder', ' ')
         self.fields['links'].widget.attrs.setdefault('placeholder', 'Add links (one per line, e.g. https://yourwebsite.com)')
-        # File fields: add class for styling
-        self.fields['profile_pic'].widget.attrs['class'] = 'form-control-file'
-        self.fields['cover_image'].widget.attrs['class'] = 'form-control-file'
         # Checkbox: ensure class for switch styling
         self.fields['is_private'].widget.attrs['class'] = 'form-check-input'
+
+    def clean_profile_pic(self):
+        profile_pic = self.cleaned_data.get('profile_pic')
+        if profile_pic is None:
+            return self.instance.profile_pic
+        return profile_pic
+
+    def clean_cover_image(self):
+        cover_image = self.cleaned_data.get('cover_image')
+        if cover_image is None:
+            return self.instance.cover_image
+        return cover_image
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Handle file fields safely
+        if self.cleaned_data.get('profile_pic') is not None:
+            instance.profile_pic = self.cleaned_data['profile_pic']
+        if self.cleaned_data.get('cover_image') is not None:
+            instance.cover_image = self.cleaned_data['cover_image']
+        if commit:
+            instance.save()
+        return instance

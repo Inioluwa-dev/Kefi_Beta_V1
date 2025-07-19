@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg p-4" style="max-width: 800px; margin: 0 auto; border-radius: 18px; border: 2px solid #00bfae22;">
+    <h2 class="mb-3" style="color:#008080;"><i class="fa fa-user-secret"></i> Privacy Policy</h2>
+    <p>Effective Date: July 2025</p>
+    <h4 class="mt-4" style="color:#008080;">1. Introduction</h4>
+    <p>We value your privacy. This policy explains how we collect, use, and protect your information when you use Kefi Beta.</p>
+    <h4 class="mt-4" style="color:#008080;">2. Data We Collect</h4>
+    <ul>
+      <li><strong>Account Info:</strong> Username, email, profile details.</li>
+      <li><strong>Content:</strong> Posts, messages, images, and comments you create.</li>
+      <li><strong>Usage Data:</strong> Log data, device info, cookies, and analytics.</li>
+    </ul>
+    <h4 class="mt-4" style="color:#008080;">3. How We Use Data</h4>
+    <ul>
+      <li>To provide and improve our services.</li>
+      <li>To personalize your experience and show relevant content.</li>
+      <li>To ensure safety, prevent abuse, and enforce our terms.</li>
+      <li>To communicate with you about updates or support.</li>
+    </ul>
+    <h4 class="mt-4" style="color:#008080;">4. Cookies</h4>
+    <p>We use cookies for authentication, analytics, and improving your experience. You can control cookies in your browser settings.</p>
+    <h4 class="mt-4" style="color:#008080;">5. Data Sharing</h4>
+    <ul>
+      <li>We do <strong>not</strong> sell your data.</li>
+      <li>We may share data with trusted service providers (e.g., hosting, analytics) who must keep it confidential.</li>
+      <li>We may disclose data if required by law or to protect our users and platform.</li>
+    </ul>
+    <h4 class="mt-4" style="color:#008080;">6. Your Rights</h4>
+    <ul>
+      <li>You can access, update, or delete your account at any time.</li>
+      <li>You can request a copy of your data or ask us to erase it.</li>
+      <li>Contact us for any privacy-related requests.</li>
+    </ul>
+    <h4 class="mt-4" style="color:#008080;">7. Contact</h4>
+    <p>If you have questions about this policy, contact us at <a href="mailto:misterhge@gmail.com" style="color:#008080;">misterhge@gmail.com</a>.</p>
+    <div class="mt-4">
+      <a href="/users/settings/" class="btn btn-back-teal"><i class="fa fa-arrow-left"></i> Back to Settings</a>
+    </div>
+  </div>
+</div>
+<style>
+.btn-back-teal {
+  background: #008080;
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 1.08rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,128,128,0.07);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+.btn-back-teal:hover, .btn-back-teal:focus {
+  background: #00bfae;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(0,191,174,0.13);
+  text-decoration: none;
+}
+</style>
+{% endblock %} 

@@ -1,25 +1,265 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block extra_auth_css %}<link rel="stylesheet" href="{% static 'users/auth.css' %}">{% endblock %}
+{% block extra_auth_css %}<link rel="stylesheet" href="{% static 'users/auth.css' %}">
+<style>
+.verify-email-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.2rem;
+}
+.verify-email-group input[type="email"],
+.verify-email-group input[type="text"] {
+  flex: 1 1 0;
+  max-width: 260px;
+  min-width: 0;
+  margin-bottom: 0;
+  height: 48px;
+  font-size: 1.08rem;
+  box-sizing: border-box;
+  padding: 0.7rem 1rem;
+}
+#verify-email-btn, #verified-btn {
+  background: #14b8a6;
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  font-size: 1.08rem;
+  transition: background 0.18s, color 0.18s;
+  box-shadow: 0 2px 8px rgba(20,184,166,0.09);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+#verify-email-btn[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+#verify-email-btn.enabled:hover, #verify-email-btn.enabled:focus {
+  background: #0e9488;
+  color: #fff;
+}
+#verified-btn {
+  background: #14b8a6;
+  color: #fff;
+  cursor: not-allowed;
+  opacity: 1;
+  pointer-events: none;
+}
+#register-error {
+  color: #e63946;
+  font-size: 1.01rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  display: none;
+}
+#verify-email-loading {
+  display: none;
+  margin-left: 8px;
+  color: #14b8a6;
+  font-size: 1.1rem;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="auth-container">
   <span class="auth-icon"><i class="fa fa-user-plus"></i></span>
   <h2 class="auth-title">Sign Up</h2>
-  <form method="post" class="auth-form">
+  <form method="post" class="auth-form" id="signup-form">
     {% csrf_token %}
+    <div id="register-error"></div>
     {% for field in form %}
-      <div>
+      <div style="position:relative;">
         {{ field.label_tag }}
-        {{ field }}
+        {% if field.name == 'email' %}
+          <div class="verify-email-group">
+            {{ field }}
+            <button type="button" id="verify-email-btn" disabled>Verify</button>
+            <button type="button" id="verified-btn" style="display:none;" disabled>Verified</button>
+            <span id="verify-email-loading"><i class="fa fa-spinner fa-spin"></i></span>
+          </div>
+        {% else %}
+          {{ field }}
+        {% endif %}
         {% if field.errors %}
           <div class="auth-error">{{ field.errors|striptags }}</div>
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="auth-btn"><i class="fa fa-user-plus"></i> Register</button>
+    <button type="submit" class="auth-btn" id="register-btn" disabled><i class="fa fa-user-plus"></i> Register</button>
     <div class="mt-2 text-center">
       <a href="{% url 'users:login' %}" class="auth-link">Already have an account? Login</a>
     </div>
   </form>
 </div>
+<!-- Email Verification Modal -->
+<div id="verify-email-modal" style="display:none;position:fixed;z-index:2000;left:0;top:0;width:100vw;height:100vh;background:rgba(20,184,166,0.13);backdrop-filter:blur(2px);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(20,184,166,0.13);padding:2.2rem 2rem 1.5rem 2rem;max-width:350px;width:90vw;position:relative;">
+    <button id="close-verify-modal" style="position:absolute;top:10px;right:16px;background:none;border:none;font-size:1.5rem;color:#14b8a6;cursor:pointer;">&times;</button>
+    <h4 style="color:#14b8a6;font-weight:700;margin-bottom:1.2rem;"><i class="fa fa-envelope"></i> Verify Email</h4>
+    <form id="verify-code-form" autocomplete="off">
+      <label for="verify-code-input" style="font-weight:500;">Enter the code sent to your email:</label>
+      <input type="text" id="verify-code-input" class="form-control auth-input" maxlength="8" style="margin-bottom:1.2rem;" autocomplete="off">
+      <button type="submit" class="btn btn-main w-100">Verify</button>
+      <div id="verify-code-error" class="auth-error" style="display:none;margin-top:0.7rem;"></div>
+    </form>
+  </div>
+</div>
+<script>
+const emailInput = document.querySelector('input[name="email"]');
+const verifyBtn = document.getElementById('verify-email-btn');
+const verifiedBtn = document.getElementById('verified-btn');
+const verifyModal = document.getElementById('verify-email-modal');
+const closeModal = document.getElementById('close-verify-modal');
+const registerBtn = document.getElementById('register-btn');
+const registerError = document.getElementById('register-error');
+const verifyLoading = document.getElementById('verify-email-loading');
+let emailVerified = false;
+let verifyCooldown = null;
+let verifyCooldownEnd = null;
+
+function validateEmail(email) {
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+}
+function updateVerifyBtnState() {
+  if (validateEmail(emailInput.value)) {
+    verifyBtn.disabled = false;
+    verifyBtn.classList.add('enabled');
+    verifyBtn.setAttribute('aria-disabled', 'false');
+  } else {
+    verifyBtn.disabled = true;
+    verifyBtn.classList.remove('enabled');
+    verifyBtn.setAttribute('aria-disabled', 'true');
+  }
+}
+
+function startVerifyCooldown() {
+  let seconds = 120;
+  verifyBtn.disabled = true;
+  verifyBtn.classList.remove('enabled');
+  verifyBtn.textContent = `Wait 2:00`;
+  verifyBtn.setAttribute('aria-disabled', 'true');
+  verifyCooldownEnd = Date.now() + seconds * 1000;
+  verifyCooldown = setInterval(() => {
+    const now = Date.now();
+    let remaining = Math.max(0, Math.round((verifyCooldownEnd - now) / 1000));
+    let min = Math.floor(remaining / 60);
+    let sec = remaining % 60;
+    verifyBtn.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+    if (remaining <= 0) {
+      clearInterval(verifyCooldown);
+      verifyBtn.textContent = 'Verify';
+      if (validateEmail(emailInput.value)) {
+        verifyBtn.disabled = false;
+        verifyBtn.classList.add('enabled');
+        verifyBtn.setAttribute('aria-disabled', 'false');
+      }
+    }
+  }, 1000);
+}
+
+emailInput.addEventListener('input', function() {
+  updateVerifyBtnState();
+  // Reset verification and cooldown if email changes
+  verifiedBtn.style.display = 'none';
+  verifyBtn.style.display = '';
+  verifyBtn.disabled = !validateEmail(emailInput.value);
+  verifyBtn.classList.toggle('enabled', validateEmail(emailInput.value));
+  registerBtn.disabled = true;
+  emailVerified = false;
+  if (verifyCooldown) {
+    clearInterval(verifyCooldown);
+    verifyBtn.textContent = 'Verify';
+  }
+});
+updateVerifyBtnState();
+
+verifyBtn.onclick = async function() {
+  if (verifyBtn.disabled) return;
+  verifyLoading.style.display = '';
+  verifyBtn.textContent = 'Sending...';
+  verifyBtn.disabled = true;
+  try {
+    const resp = await fetch("{% url 'users:send_verification_code' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: 'email=' + encodeURIComponent(emailInput.value)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      verifyModal.style.display = 'flex';
+      document.getElementById('verify-code-input').focus();
+      startVerifyCooldown();
+    } else {
+      registerError.textContent = data.error || 'Failed to send code.';
+      registerError.style.display = 'block';
+      verifyBtn.textContent = 'Verify';
+      verifyBtn.disabled = false;
+      verifyBtn.classList.add('enabled');
+      verifyBtn.setAttribute('aria-disabled', 'false');
+    }
+  } catch (e) {
+    registerError.textContent = 'Network error. Please try again.';
+    registerError.style.display = 'block';
+    verifyBtn.textContent = 'Verify';
+    verifyBtn.disabled = false;
+    verifyBtn.classList.add('enabled');
+    verifyBtn.setAttribute('aria-disabled', 'false');
+  }
+  verifyLoading.style.display = 'none';
+};
+closeModal.onclick = function() {
+  verifyModal.style.display = 'none';
+};
+window.onclick = function(e) {
+  if (e.target === verifyModal) verifyModal.style.display = 'none';
+};
+document.getElementById('verify-code-form').onsubmit = async function(e) {
+  e.preventDefault();
+  const code = document.getElementById('verify-code-input').value.trim();
+  const errorDiv = document.getElementById('verify-code-error');
+  errorDiv.style.display = 'none';
+  try {
+    const resp = await fetch("{% url 'users:verify_code' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: 'email=' + encodeURIComponent(emailInput.value) + '&code=' + encodeURIComponent(code)
+    });
+    const data = await resp.json();
+    if (data.success) {
+      verifyModal.style.display = 'none';
+      verifyBtn.style.display = 'none';
+      verifiedBtn.style.display = '';
+      registerBtn.disabled = false;
+      registerError.style.display = 'none';
+      emailVerified = true;
+    } else {
+      errorDiv.textContent = data.error || 'Invalid code. Please try again.';
+      errorDiv.style.display = 'block';
+    }
+  } catch (e) {
+    errorDiv.textContent = 'Network error. Please try again.';
+    errorDiv.style.display = 'block';
+  }
+};
+const signupForm = document.getElementById('signup-form');
+signupForm.onsubmit = function(e) {
+  if (!emailVerified) {
+    e.preventDefault();
+    registerError.textContent = 'Please verify your email before signing up.';
+    registerError.style.display = 'block';
+    return false;
+  }
+};
+</script>
 {% endblock %}

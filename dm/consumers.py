@@ -45,6 +45,14 @@ class DMConsumer(AsyncWebsocketConsumer):
                     'sender': self.me.username,
                 }
             )
+        elif event_type == 'not_typing':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'not_typing',
+                    'sender': self.me.username,
+                }
+            )
         elif event_type == 'read':
             await self.mark_messages_read(self.me, self.other_user)
             await self.channel_layer.group_send(
@@ -65,6 +73,12 @@ class DMConsumer(AsyncWebsocketConsumer):
     async def typing(self, event):
         await self.send(text_data=json.dumps({
             'type': 'typing',
+            'sender': event['sender'],
+        }))
+
+    async def not_typing(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'not_typing',
             'sender': event['sender'],
         }))
 
