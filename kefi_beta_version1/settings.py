@@ -90,14 +90,31 @@ APPEND_SLASH = False
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'taken_db',
+#         'USER': 'root',      
+#         'PASSWORD': '',     
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'taken_db',
-        'USER': 'root',      
-        'PASSWORD': '',     
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('MYSQL_DATABASE', 'defaultdb'),
+        'USER': os.environ.get('MYSQL_USER', 'avnadmin'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+        'HOST': os.environ.get('MYSQL_HOST', ''),
+        'PORT': os.environ.get('MYSQL_PORT', '15747'),
+        'OPTIONS': {
+            'ssl': {
+                'ca': '/etc/secrets/ca.pem',
+            },
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -138,12 +155,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'static',  # global static
-# ]
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'static',  # global static
-# ]
+
 
 # Media files (user uploads)
 MEDIA_URL = '/media/'
