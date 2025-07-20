@@ -13,6 +13,9 @@ from kefi_beta_version1.views import custom_404_view
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import JsonResponse
+import hashlib
+import time
+from django.utils import timezone
 
 def feed_view(request):
     if not request.user.is_authenticated:
@@ -23,16 +26,60 @@ def feed_view(request):
 def post_create_view(request):
     if not request.user.is_authenticated:
         return custom_404_view(request)
+    
     if request.method == 'POST':
+        # Generate a unique form hash to prevent duplicate submissions
+        form_data = request.POST.get('content', '') + str(request.user.id) + str(time.time())
+        form_hash = hashlib.md5(form_data.encode()).hexdigest()
+        
+        # Check if this form was already submitted
+        if form_hash in request.session.get('submitted_forms', []):
+            messages.warning(request, 'This post was already submitted. Please wait a moment.')
+            return redirect('posts:feed')
+        
+        # Validate form token
+        form_token = request.POST.get('form_token')
+        session_token = request.session.get('form_token')
+        
+        if form_token and session_token and form_token == session_token:
+            # Token already used, prevent duplicate submission
+            messages.warning(request, 'This form was already submitted.')
+            return redirect('posts:feed')
+        
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
+            # Check for duplicate content within last 5 minutes
+            recent_posts = Post.objects.filter(
+                user=request.user,
+                content=form.cleaned_data['content'],
+                created_at__gte=timezone.now() - timezone.timedelta(minutes=5)
+            )
+            
+            if recent_posts.exists():
+                messages.warning(request, 'A similar post was already created recently.')
+                return redirect('posts:feed')
+            
             post = form.save(commit=False)
             post.user = request.user
             post.save()
+            
+            # Add form hash to session to prevent resubmission
+            submitted_forms = request.session.get('submitted_forms', [])
+            submitted_forms.append(form_hash)
+            # Keep only last 10 form hashes to prevent session bloat
+            request.session['submitted_forms'] = submitted_forms[-10:]
+            
+            # Mark form token as used
+            request.session['form_token'] = form_token
+            
             messages.success(request, 'Post created!')
             return redirect('posts:feed')
     else:
+        # Generate new form token for GET requests
+        import uuid
+        request.session['form_token'] = str(uuid.uuid4())
         form = PostForm()
+    
     return render(request, 'posts/post_create.html', {'form': form})
 
 

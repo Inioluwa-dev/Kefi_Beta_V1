@@ -88,6 +88,7 @@
         <h2 class="create-post-title"><i class="fa fa-pen-nib"></i> Create Post</h2>
         <form method="post" enctype="multipart/form-data" class="create-post-form">
           {% csrf_token %}
+          <input type="hidden" name="form_token" value="{{ request.session.form_token|default:'' }}">
           {% for field in form %}
             <div class="mb-3">
               {% if field.name == 'image' %}
@@ -128,5 +129,30 @@ if (uploadInput && previewImg) {
     }
   });
 }
+
+// Prevent double submission
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('.create-post-form');
+  const submitBtn = document.querySelector('.create-post-btn');
+  let isSubmitting = false;
+
+  form.addEventListener('submit', function(e) {
+    if (isSubmitting) {
+      e.preventDefault();
+      return false;
+    }
+    
+    isSubmitting = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Posting...';
+    
+    // Re-enable after 5 seconds in case of error
+    setTimeout(() => {
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Post';
+    }, 5000);
+  });
+});
 </script>
 {% endblock %}

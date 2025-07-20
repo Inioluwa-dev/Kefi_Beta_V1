@@ -12,6 +12,11 @@ class Post(models.Model):
     blocked = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        # Prevent exact duplicate posts from same user
+        unique_together = ['user', 'content']
+        ordering = ['-created_at']
+
     def __str__(self):
         return f"{self.user.username}: {self.content[:30]}"
 
