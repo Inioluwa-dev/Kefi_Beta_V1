@@ -1,6 +1,11 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+import re
 
+
+def safe_group_name(name):
+    # Replace any invalid character with underscore and limit length
+    return re.sub(r'[^a-zA-Z0-9._-]', '_', name)[:99]
 
 class DMConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -90,7 +95,8 @@ class DMConsumer(AsyncWebsocketConsumer):
 
     @staticmethod
     def get_room_name(user1, user2):
-        return '_'.join(sorted([user1, user2]))
+        base = '_'.join(sorted([user1, user2]))
+        return safe_group_name(base)
 
     @staticmethod
     async def get_user(username):
