@@ -13,8 +13,7 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # Prevent exact duplicate posts from same user
-        unique_together = ['user', 'content']
+        # Order posts by creation date (newest first)
         ordering = ['-created_at']
 
     def __str__(self):
