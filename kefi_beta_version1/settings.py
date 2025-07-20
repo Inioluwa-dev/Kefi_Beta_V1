@@ -26,13 +26,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+# Set DEBUG based on environment - default to False for production safety
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
+
+# Environment detection
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
+IS_PRODUCTION = ENVIRONMENT == 'production' or not DEBUG
+
+# Force DEBUG to False in production for security
+if IS_PRODUCTION:
+    DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
-
-SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 
 # Application definition
 
@@ -164,6 +169,13 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'users/static'),
 ]
 
+# Production-specific static file settings
+if not DEBUG:
+    # WhiteNoise configuration for production
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+    WHITENOISE_MAX_AGE = 31536000  # 1 year cache
+
 
 # Media files (user uploads)
 MEDIA_URL = '/media/'
@@ -200,13 +212,21 @@ EMAIL_HOST_USER = os.environ.get('GMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Kefi <{os.environ.get('GMAIL_USER')}>"
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_REFERRER_POLICY = "same-origin"
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# Security settings for production
+if not DEBUG:
+    # Security settings
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_HTTPONLY = True
+else:
+    # Development settings
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
