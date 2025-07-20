@@ -8,7 +8,7 @@
       <span class="ms-2 small" style="color: var(--secondary);" data-server-time="{{ post.created_at|date:'c' }}">{{ post.created_at|nigeria_time|date:'M d, H:i' }}</span>
     </div>
     <p class="fs-5 mb-3">
-      {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% autoescape %}
+      {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
     </p>
     {% if post.image %}
       <div class="w-100 mb-3 d-flex justify-content-center align-items-center">
