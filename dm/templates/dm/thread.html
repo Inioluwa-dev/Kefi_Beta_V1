@@ -231,7 +231,7 @@
     <div class="dm-bubble">
       {{ msg.content }}
       <div class="dm-bubble-meta">
-        {{ msg.timestamp|date:'H:i' }}{% if msg.sender == user %} &middot; <span style="color:#fff;">{% if msg.is_read %}Seen{% else %}Sent{% endif %}</span>{% endif %}
+        <span data-server-time="{{ msg.timestamp|date:'c' }}">{{ msg.timestamp|date:'H:i' }}</span>{% if msg.sender == user %} &middot; <span style="color:#fff;">{% if msg.is_read %}Seen{% else %}Sent{% endif %}</span>{% endif %}
       </div>
     </div>
   </div>

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load highlight %}
+{% load time_filters %}
 {% block extra_head %}
 <style>
 .profile-bg {
@@ -215,7 +216,7 @@
               <div class="d-flex align-items-center mb-2">
                                     <img src="{{ user_obj.profile.get_profile_pic_url }}" class="rounded-circle me-2" width="36" height="36">
                 <span class="fw-bold">{{ user_obj.username }}</span>
-                <span class="text-muted ms-2 small">{{ post.created_at|date:'M d, H:i' }}</span>
+                <span class="text-muted ms-2 small" data-server-time="{{ post.created_at|date:'c' }}">{{ post.created_at|nigeria_time|date:'M d, H:i' }}</span>
               </div>
               <p>
                 {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}

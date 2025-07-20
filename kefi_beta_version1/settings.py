@@ -151,7 +151,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Set timezone to Nigeria (WAT - West Africa Time, UTC+1)
+TIME_ZONE = 'Africa/Lagos'
 
 USE_I18N = True
 

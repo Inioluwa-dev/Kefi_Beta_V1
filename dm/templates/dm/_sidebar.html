@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="dm-convo-snippet">{{ msg.content|truncatechars:32 }}</div>
         </div>
         <div class="dm-convo-meta">
-          <span>{{ msg.timestamp|date:'M d, H:i' }}</span>
+          <span data-server-time="{{ msg.timestamp|date:'c' }}">{{ msg.timestamp|date:'M d, H:i' }}</span>
           {% if not msg.is_read and msg.recipient == user %}
             <span class="badge bg-info ms-1">New</span>
           {% endif %}

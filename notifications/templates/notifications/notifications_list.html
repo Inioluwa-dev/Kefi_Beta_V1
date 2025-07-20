@@ -166,7 +166,7 @@
         {% else %}
           <div>{{ notification }}</div>
         {% endif %}
-        <span class="text-muted small d-block mt-1">{{ notification.timestamp|date:"M d, H:i" }}</span>
+        <span class="text-muted small d-block mt-1" data-server-time="{{ notification.timestamp|date:'c' }}">{{ notification.timestamp|date:"M d, H:i" }}</span>
       </div>
     </div>
     {% if not forloop.last %}<div class="soft-divider"></div>{% endif %}
