@@ -30,7 +30,7 @@ urlpatterns = [
     path('sm_app/', include('sm_app.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files in both development and production
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = 'kefi_beta_version1.views.custom_404_view'

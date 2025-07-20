@@ -28,7 +28,9 @@ class Profile(models.Model):
         """Get profile picture URL with fallback to static default"""
         if self.profile_pic and hasattr(self.profile_pic, 'url'):
             try:
-                return self.profile_pic.url
+                # Only use media file if it's not the default
+                if self.profile_pic.name and self.profile_pic.name != 'profile_pics/default.jpg':
+                    return self.profile_pic.url
             except:
                 pass
         return '/static/users/default-profile.jpg'
