@@ -179,12 +179,19 @@ if not DEBUG:
     WHITENOISE_MAX_AGE = 31536000  # 1 year cache
 
 
-# Media files (user uploads)
+# Media files (user uploads) - Backblaze B2 via django-storages
 import os
 
 INSTALLED_APPS += ['storages']
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 AWS_ACCESS_KEY_ID = os.environ.get('B2_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('B2_APP_KEY')
@@ -208,15 +215,6 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
-}
-
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
