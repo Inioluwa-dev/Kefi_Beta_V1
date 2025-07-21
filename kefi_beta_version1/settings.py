@@ -193,15 +193,13 @@ STORAGES = {
     },
 }
 
+AWS_STORAGE_BUCKET_NAME = os.environ.get('B2_BUCKET_NAME')  # just the bucket name
+AWS_S3_ENDPOINT_URL = f"https://s3.{os.environ.get('B2_REGION')}.backblazeb2.com"  # no bucket in URL
 AWS_ACCESS_KEY_ID = os.environ.get('B2_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('B2_APP_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('B2_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = f"https://s3.{os.environ.get('B2_REGION')}.backblazeb2.com"
-AWS_S3_REGION_NAME = os.environ.get('B2_REGION')
 AWS_S3_ADDRESSING_STYLE = "path"
-AWS_DEFAULT_ACL = None
-AWS_QUERYSTRING_AUTH = True  # Important for private buckets!
-MEDIA_URL = f"https://{os.environ.get('B2_BUCKET_NAME')}.s3.{os.environ.get('B2_REGION')}.backblazeb2.com/"
+AWS_QUERYSTRING_AUTH = True  # For private buckets!
+MEDIA_URL = f"https://s3.{os.environ.get('B2_REGION')}.backblazeb2.com/{os.environ.get('B2_BUCKET_NAME')}/"
 
 
 # Default primary key field type
