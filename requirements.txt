@@ -16,3 +16,5 @@ djangorestframework_simplejwt==5.5.0
 python-decouple==3.8
 requests==2.32.3
 pytz==2024.1
+django-storages
+boto3
