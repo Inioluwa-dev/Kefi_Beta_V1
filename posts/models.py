@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from PIL import Image
 from django.urls import reverse
 import re
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
@@ -26,13 +28,17 @@ class Post(models.Model):
         return self.comments.count()
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
         if self.image:
-            img = Image.open(self.image.path)
+            img = Image.open(self.image)
             if img.height > 800 or img.width > 800:
                 output_size = (800, 800)
                 img.thumbnail(output_size)
-                img.save(self.image.path)
+                buffer = BytesIO()
+                img_format = img.format if img.format else 'JPEG'
+                img.save(buffer, format=img_format)
+                buffer.seek(0)
+                self.image.save(self.image.name, ContentFile(buffer.read()), save=False)
+        super().save(*args, **kwargs)
 
     def get_hashtags(self):
         return re.findall(r'#(\w+)', self.content)

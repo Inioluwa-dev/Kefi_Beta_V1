@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -36,22 +38,32 @@ class Profile(models.Model):
         return '/static/users/default-profile.jpg'
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.profile_pic and hasattr(self.profile_pic, 'path'):
+        # Resize profile_pic in-memory
+        if self.profile_pic and hasattr(self.profile_pic, 'file') and self.profile_pic.name != 'profile_pics/default.jpg':
             try:
-                img = Image.open(self.profile_pic.path)
+                img = Image.open(self.profile_pic)
                 if img.height > 300 or img.width > 300:
                     output_size = (300, 300)
                     img.thumbnail(output_size)
-                    img.save(self.profile_pic.path)
-            except (OSError, IOError):
-                pass  # File doesn't exist or can't be opened
-        if self.cover_image and hasattr(self.cover_image, 'path'):
+                    buffer = BytesIO()
+                    img_format = img.format if img.format else 'JPEG'
+                    img.save(buffer, format=img_format)
+                    buffer.seek(0)
+                    self.profile_pic.save(self.profile_pic.name, ContentFile(buffer.read()), save=False)
+            except Exception:
+                pass
+        # Resize cover_image in-memory
+        if self.cover_image and hasattr(self.cover_image, 'file'):
             try:
-                img = Image.open(self.cover_image.path)
+                img = Image.open(self.cover_image)
                 if img.height > 600 or img.width > 1200:
                     output_size = (1200, 600)
                     img.thumbnail(output_size)
-                    img.save(self.cover_image.path)
-            except (OSError, IOError):
-                pass  # File doesn't exist or can't be opened
+                    buffer = BytesIO()
+                    img_format = img.format if img.format else 'JPEG'
+                    img.save(buffer, format=img_format)
+                    buffer.seek(0)
+                    self.cover_image.save(self.cover_image.name, ContentFile(buffer.read()), save=False)
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
