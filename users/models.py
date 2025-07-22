@@ -27,15 +27,24 @@ class Profile(models.Model):
         return self.following.count()
 
     def get_profile_pic_url(self):
-        """Get profile picture URL with fallback to static default"""
-        if self.profile_pic and hasattr(self.profile_pic, 'url'):
+        """Get profile picture signed URL with fallback to static default"""
+        if self.profile_pic and hasattr(self.profile_pic, 'name') and self.profile_pic.name != 'profile_pics/default.jpg':
             try:
-                # Only use media file if it's not the default
-                if self.profile_pic.name and self.profile_pic.name != 'profile_pics/default.jpg':
-                    return self.profile_pic.url
-            except:
+                from utils.b2_signed_url import generate_b2_signed_url
+                return generate_b2_signed_url(self.profile_pic.name)
+            except Exception:
                 pass
         return '/static/users/default-profile.jpg'
+
+    def get_cover_image_url(self):
+        """Get cover image signed URL or None if not set"""
+        if self.cover_image and hasattr(self.cover_image, 'name') and self.cover_image.name:
+            try:
+                from utils.b2_signed_url import generate_b2_signed_url
+                return generate_b2_signed_url(self.cover_image.name)
+            except Exception:
+                pass
+        return None
 
     def save(self, *args, **kwargs):
         # Resize profile_pic in-memory

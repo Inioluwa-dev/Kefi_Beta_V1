@@ -274,9 +274,9 @@
         <div class="form-group input-icon">
           <label class="form-label">Cover Image</label>
           <div class="cover-upload-row">
-            {% if profile.cover_image %}
-              <div class="cover-img-blur" style="background-image:url('{{ profile.cover_image.url }}');"></div>
-              <img src="{{ profile.cover_image.url }}" alt="Cover Image" class="cover-img-preview">
+            {% if profile.get_cover_image_url %}
+              <div class="cover-img-blur" style="background-image:url('{{ profile.get_cover_image_url }}');"></div>
+              <img src="{{ profile.get_cover_image_url }}" alt="Cover Image" class="cover-img-preview">
             {% else %}
               <div class="cover-img-placeholder">No cover image</div>
             {% endif %}

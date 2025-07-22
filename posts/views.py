@@ -51,6 +51,11 @@ def post_create_view(request):
 @login_required
 def post_detail_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    from utils.b2_signed_url import generate_b2_signed_url
+    if post.image:
+        post.signed_image_url = generate_b2_signed_url(post.image.name)
+    else:
+        post.signed_image_url = None
     # Check if the post is blocked
     if post.blocked:
         # If the user is admin, allow

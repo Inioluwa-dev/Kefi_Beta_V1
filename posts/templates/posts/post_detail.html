@@ -186,8 +186,8 @@
         <div class="post-detail-content">
           {% autoescape off %}{{ post.content|highlight_tags_mentions|linebreaksbr|urlize|safe }}{% endautoescape %}
         </div>
-        {% if post.image %}
-          <img src="{{ post.image.url }}" class="post-detail-image" alt="Post Image">
+        {% if post.signed_image_url %}
+          <img src="{{ post.signed_image_url }}" class="post-detail-image" alt="Post Image">
         {% endif %}
         <div class="post-detail-actions">
           <a href="{% url 'posts:like_post' post.pk %}" class="btn btn-outline-danger btn-sm">
