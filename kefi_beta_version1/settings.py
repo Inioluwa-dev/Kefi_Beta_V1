@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',  # <-- Add this line
+    'webpush',
 ]
 
 MIDDLEWARE = [
@@ -174,6 +175,12 @@ if not DEBUG:
 
 # Media files (user uploads) - Backblaze B2 via django-storages
 import os
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BHi9xARCd-PmsalLQqsxwFo6DMBXBeDSK7D-Yu-G-tKxnYQ0rIk4W-ImbZQk7hsyWSGDNGeBXhqx_Iw3PEA-N0o=",
+    "VAPID_PRIVATE_KEY": "vl6ihd7UPjGSMrLCJ6LIDb9hQsawIslkZHbz5FFIg5E=",
+    "VAPID_ADMIN_EMAIL": "misterhge@gmail.com"
+}
 
 INSTALLED_APPS += ['storages']
 

@@ -28,6 +28,7 @@ urlpatterns = [
     path('dm/', include('dm.urls')),
     path('', include('core.urls')),
     path('sm_app/', include('sm_app.urls')),
+    path('webpush/', include('webpush.urls')),
 ]
 
 # Serve media files in both development and production

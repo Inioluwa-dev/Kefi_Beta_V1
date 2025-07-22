@@ -22,7 +22,7 @@ from utils.b2_signed_url import generate_b2_signed_url
 def feed_view(request):
     if not request.user.is_authenticated:
         return redirect(f"/users/login/?next=/posts/feed/&login_required=1")
-    posts = Post.objects.filter(blocked=False).order_by('-created_at')
+    posts = Post.objects.filter(blocked=False).order_by('?')
     for post in posts:
         if post.image:
             post.signed_image_url = generate_b2_signed_url(post.image.name)

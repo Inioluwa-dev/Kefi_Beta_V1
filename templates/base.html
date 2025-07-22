@@ -166,7 +166,53 @@
       toast.show();
     });
   });
+
+  // Web Push Notification logic
+  if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/serviceworker.js').then(function(reg) {
+          window.swRegistration = reg;
+      });
+  }
+  function subscribeToPush() {
+      if (!window.swRegistration) return;
+      fetch('/webpush/vapid_public_key')
+          .then(response => response.json())
+          .then(data => {
+              const vapidPublicKey = data.vapid_public_key;
+              const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+              window.swRegistration.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: convertedVapidKey
+              }).then(function(subscription) {
+                  fetch('/webpush/save_information/', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          'X-CSRFToken': (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value
+                      },
+                      body: JSON.stringify(subscription)
+                  });
+              });
+          });
+  }
+  function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+  }
 </script>
+<div id="push-prompt" class="alert alert-info text-center" style="display:none; position:relative; z-index:2001;">
+  <strong>Turn on notifications for the best Kefi experience!</strong>
+  <button onclick="subscribeToPush()" class="btn btn-success btn-sm ms-2">Enable Notifications</button>
+  <button onclick="dismissPushPrompt()" class="btn btn-link btn-sm">Dismiss</button>
+</div>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

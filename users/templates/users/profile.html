@@ -153,8 +153,8 @@
   <div class="row">
     <div class="col-md-4 text-center">
       <div class="profile-bg">
-        {% if profile.cover_image %}
-          <img src="{{ profile.cover_image.url }}" class="profile-cover-img" alt="Cover Image">
+        {% if profile.get_cover_image_url %}
+          <img src="{{ profile.get_cover_image_url }}" class="profile-cover-img" alt="Cover Image">
         {% endif %}
                         <img src="{{ profile.get_profile_pic_url }}" class="profile-avatar-floating" alt="Profile Picture">
       </div>
