@@ -199,7 +199,7 @@
         <h5 style="color: var(--primary); font-weight: 700;">Comments ({{ post.comment_count }})</h5>
         <form method="post" class="comment-form">
           {% csrf_token %}
-          {{ comment_form.content }}
+          <textarea name="content" id="id_content" class="comment-input" rows="3" maxlength="1000" required placeholder="Add a comment...">{{ comment_form.content.value }}</textarea>
           <button type="submit"><i class="fa fa-paper-plane"></i></button>
         </form>
         <div class="comment-list">

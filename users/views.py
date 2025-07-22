@@ -22,16 +22,19 @@ class ReactivatePasswordResetConfirmView(PasswordResetConfirmView):
         user.save()
         return super().form_valid(form)
 
+def is_email_verified(email):
+    from django.contrib.auth.models import User
+    user = User.objects.filter(email=email).first()
+    return bool(user and hasattr(user, 'profile') and user.profile.email_verified)
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('posts:feed')
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         email = request.POST.get('email')
-        email_verified = request.session.get('email_verified')
-        email_target = request.session.get('email_verification_target')
         if form.is_valid():
-            if not (email_verified and email_target == form.cleaned_data['email']):
+            if not is_email_verified(email):
                 form.add_error('email', 'Please verify your email before signing up.')
             else:
                 user = form.save()
@@ -242,6 +245,12 @@ def verify_code(request):
     session_email = request.session.get('email_verification_target')
     if code and email and code == session_code and email == session_email:
         request.session['email_verified'] = True
+        # Persistently mark the user's profile as verified if the user exists
+        from django.contrib.auth.models import User
+        user = User.objects.filter(email=email).first()
+        if user and hasattr(user, 'profile'):
+            user.profile.email_verified = True
+            user.profile.save()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False, 'error': 'Invalid code or email.'}, status=400)
 
@@ -250,3 +259,12 @@ def user_exists_view(request):
     from django.contrib.auth.models import User
     exists = User.objects.filter(username=username).exists()
     return JsonResponse({'exists': exists})
+
+def email_verified_view(request):
+    email = request.GET.get('email', '').strip()
+    from django.contrib.auth.models import User
+    user = User.objects.filter(email=email).first()
+    verified = False
+    if user and hasattr(user, 'profile'):
+        verified = user.profile.email_verified
+    return JsonResponse({'verified': verified})

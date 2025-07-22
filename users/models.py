@@ -14,6 +14,7 @@ class Profile(models.Model):
     following = models.ManyToManyField('self', symmetrical=False, related_name='followers', blank=True)
     links = models.TextField(blank=True)  # Comma-separated or JSON links
     is_private = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.username} Profile"

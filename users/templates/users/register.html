@@ -162,21 +162,50 @@ function startVerifyCooldown() {
   }, 1000);
 }
 
+async function checkEmailVerifiedState(email) {
+  if (!validateEmail(email)) {
+    verifiedBtn.style.display = 'none';
+    verifyBtn.style.display = '';
+    registerBtn.disabled = true;
+    emailVerified = false;
+    return;
+  }
+  try {
+    const resp = await fetch('/users/exists/?username=' + encodeURIComponent(email));
+    // This endpoint checks username, not email, so let's use a new endpoint for email verification check
+    // We'll assume you have an endpoint /users/email_verified/?email=...
+    const resp2 = await fetch(`/users/email_verified/?email=${encodeURIComponent(email)}`);
+    const data = await resp2.json();
+    if (data.verified) {
+      verifiedBtn.style.display = '';
+      verifyBtn.style.display = 'none';
+      registerBtn.disabled = false;
+      emailVerified = true;
+    } else {
+      verifiedBtn.style.display = 'none';
+      verifyBtn.style.display = '';
+      registerBtn.disabled = true;
+      emailVerified = false;
+    }
+  } catch (e) {
+    verifiedBtn.style.display = 'none';
+    verifyBtn.style.display = '';
+    registerBtn.disabled = true;
+    emailVerified = false;
+  }
+}
+
 emailInput.addEventListener('input', function() {
   updateVerifyBtnState();
   // Reset verification and cooldown if email changes
-  verifiedBtn.style.display = 'none';
-  verifyBtn.style.display = '';
-  verifyBtn.disabled = !validateEmail(emailInput.value);
-  verifyBtn.classList.toggle('enabled', validateEmail(emailInput.value));
-  registerBtn.disabled = true;
-  emailVerified = false;
+  checkEmailVerifiedState(emailInput.value);
   if (verifyCooldown) {
     clearInterval(verifyCooldown);
     verifyBtn.textContent = 'Verify';
   }
 });
 updateVerifyBtnState();
+checkEmailVerifiedState(emailInput.value);
 
 verifyBtn.onclick = async function() {
   if (verifyBtn.disabled) return;
@@ -258,8 +287,13 @@ signupForm.onsubmit = function(e) {
     e.preventDefault();
     registerError.textContent = 'Please verify your email before signing up.';
     registerError.style.display = 'block';
+    registerBtn.disabled = true;
     return false;
   }
 };
+// Always keep register button disabled unless email is verified
+setInterval(function() {
+  registerBtn.disabled = !emailVerified;
+}, 200);
 </script>
 {% endblock %}
