@@ -14,12 +14,6 @@
       <div class="w-100 mb-3 d-flex justify-content-center align-items-center">
         <img src="{{ post.signed_image_url }}" class="img-fluid rounded-4 shadow-sm post-image" style="width: 100%; max-height: 350px; object-fit: cover; border: 2px solid var(--primary); background: #f8fafc;">
       </div>
-      <div style="word-break: break-all; font-size: 0.85em; color: #888;">
-        <strong>Debug Info:</strong><br>
-        <strong>post.image:</strong> {{ post.image }}<br>
-        <strong>post.image.name:</strong> {{ post.image.name }}<br>
-        <strong>post.signed_image_url:</strong> {{ post.signed_image_url }}<br>
-      </div>
     {% else %}
       <div style="color: #c00; font-size: 0.9em;">No image attached to this post.</div>
     {% endif %}
