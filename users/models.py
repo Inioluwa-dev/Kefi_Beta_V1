@@ -49,7 +49,12 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         # Resize profile_pic in-memory
-        if self.profile_pic and hasattr(self.profile_pic, 'file') and self.profile_pic.name != 'profile_pics/default.jpg':
+        if (
+            self.profile_pic
+            and hasattr(self.profile_pic, 'file')
+            and self.profile_pic.name
+            and self.profile_pic.name != 'profile_pics/default.jpg'
+        ):
             try:
                 img = Image.open(self.profile_pic)
                 if img.height > 300 or img.width > 300:
