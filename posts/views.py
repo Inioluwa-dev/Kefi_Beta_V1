@@ -17,10 +17,17 @@ import hashlib
 import time
 from django.utils import timezone
 
+from utils.b2_signed_url import generate_b2_signed_url
+
 def feed_view(request):
     if not request.user.is_authenticated:
         return redirect(f"/users/login/?next=/posts/feed/&login_required=1")
     posts = Post.objects.filter(blocked=False).order_by('-created_at')
+    for post in posts:
+        if post.image:
+            post.signed_image_url = generate_b2_signed_url(post.image.name)
+        else:
+            post.signed_image_url = None
     return render(request, 'posts/feed.html', {'posts': posts})
 
 def post_create_view(request):
