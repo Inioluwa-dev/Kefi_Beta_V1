@@ -122,7 +122,8 @@ DATABASES = {
             'ssl': {
                 'ca': '/etc/secrets/ca.pem',
             },
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES 'utf8mb4'",
         },
     }
 }
