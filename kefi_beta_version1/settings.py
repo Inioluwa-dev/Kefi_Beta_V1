@@ -200,7 +200,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('B2_APP_KEY')
 AWS_S3_ADDRESSING_STYLE = "path"
 AWS_QUERYSTRING_AUTH = True  # For private buckets!
 AWS_QUERYSTRING_EXPIRE = 600  # Signed URL valid for 10 minutes
-MEDIA_URL = f"https://s3.{os.environ.get('B2_REGION')}.backblazeb2.com/{os.environ.get('B2_BUCKET_NAME')}/"
+# MEDIA_URL is not set for private B2 buckets; django-storages will generate signed URLs
 
 
 # Default primary key field type
