@@ -169,7 +169,7 @@
 
   // Web Push Notification logic
   if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/serviceworker.js').then(function(reg) {
+      navigator.serviceWorker.register("{% static 'users/serviceworker.js' %}").then(function(reg) {
           window.swRegistration = reg;
       });
   }

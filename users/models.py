@@ -5,6 +5,7 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 
 class Profile(models.Model):
+    username_lower = models.CharField(max_length=150, editable=False, db_index=True, default='')
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True)
     profile_pic = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.jpg')
@@ -28,14 +29,16 @@ class Profile(models.Model):
         return self.following.count()
 
     def get_profile_pic_url(self):
-        """Get profile picture signed URL with fallback to static default"""
-        if self.profile_pic and hasattr(self.profile_pic, 'name') and self.profile_pic.name != 'profile_pics/default.jpg':
-            try:
-                from utils.b2_signed_url import generate_b2_signed_url
-                return generate_b2_signed_url(self.profile_pic.name)
-            except Exception:
-                pass
-        return '/static/users/default-profile.jpg'
+        """Always return a signed B2 URL for the profile image, including the default."""
+        key = self.profile_pic.name if self.profile_pic and hasattr(self.profile_pic, 'name') and self.profile_pic.name else 'profile_pics/default.jpg'
+        try:
+            from utils.b2_signed_url import generate_b2_signed_url
+            url = generate_b2_signed_url(key)
+            if url:
+                return url
+        except Exception:
+            pass
+        return ''
 
     def get_cover_image_url(self):
         """Get cover image signed URL or None if not set"""
@@ -48,7 +51,10 @@ class Profile(models.Model):
         return None
 
     def save(self, *args, **kwargs):
-        # Resize profile_pic in-memory
+        # Always sync username_lower with the user's username in lowercase
+        if self.user and self.user.username:
+            self.username_lower = self.user.username.lower()
+        # Resize profile_pic in-memory 
         if (
             self.profile_pic
             and hasattr(self.profile_pic, 'file')

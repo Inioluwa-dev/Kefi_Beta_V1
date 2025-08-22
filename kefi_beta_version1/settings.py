@@ -26,16 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Set DEBUG based on environment - default to False for production safety
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
-
-# Environment detection
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
-IS_PRODUCTION = ENVIRONMENT == 'production' or not DEBUG
-
-# Force DEBUG to False in production for security
-if IS_PRODUCTION:
-    DEBUG = False
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
@@ -111,23 +102,42 @@ APPEND_SLASH = False
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'defaultdb'),
-        'USER': os.environ.get('MYSQL_USER', 'avnadmin'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
-        'HOST': os.environ.get('MYSQL_HOST', ''),
-        'PORT': os.environ.get('MYSQL_PORT', '15747'),
-        'OPTIONS': {
-            'ssl': {
-                'ca': '/etc/secrets/ca.pem',
-            },
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES 'utf8mb4'",
-        },
+# Database configuration
+if os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true':
+    # Development - Use SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    # Production - Use Aiven MySQL
+    ca_cert_path = os.path.join(BASE_DIR, 'ca.pem')
+    ssl_options = {}
+    
+    if os.path.exists(ca_cert_path):
+        ssl_options = {
+            'ssl': {
+                'ca': ca_cert_path,
+            },
+        }
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('MYSQL_DATABASE', 'defaultdb'),
+            'USER': os.environ.get('MYSQL_USER', 'avnadmin'),
+            'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
+            'HOST': os.environ.get('MYSQL_HOST', 'kefi-mysql-kefi-db.g.aivencloud.com'),
+            'PORT': os.environ.get('MYSQL_PORT', '15747'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES', NAMES 'utf8mb4'",
+                **ssl_options,
+            },
+        }
+    }
 
 
 # Password validation
@@ -165,12 +175,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'users/static'),
 ]
 
-# Production-specific static file settings
-if not DEBUG:
-    # WhiteNoise configuration for production
-    WHITENOISE_USE_FINDERS = True
-    WHITENOISE_AUTOREFRESH = True
-    WHITENOISE_MAX_AGE = 31536000  # 1 year cache
+# WhiteNoise configuration
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
+WHITENOISE_MAX_AGE = 31536000  # 1 year cache
 
 
 # Media files (user uploads) - Backblaze B2 via django-storages
@@ -200,7 +208,11 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('B2_APP_KEY')
 AWS_S3_ADDRESSING_STYLE = "path"
 AWS_QUERYSTRING_AUTH = True  # For private buckets!
 AWS_QUERYSTRING_EXPIRE = 600  # Signed URL valid for 10 minutes
+
 # MEDIA_URL is not set for private B2 buckets; django-storages will generate signed URLs
+# Public URL for B2 bucket (set this to your bucket's public base URL)
+# Public URL for B2 bucket (set this to your bucket's public base URL)
+B2_PUBLIC_URL = os.environ.get('B2_PUBLIC_URL', f'https://YOUR-B2-URL-HERE/file/{AWS_STORAGE_BUCKET_NAME}')
 
 
 # Default primary key field type
@@ -224,21 +236,6 @@ EMAIL_HOST_USER = os.environ.get('GMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Kefi <{os.environ.get('GMAIL_USER')}>"
 
-# Security settings for production
-if not DEBUG:
-    # Security settings
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_REFERRER_POLICY = "same-origin"
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_HTTPONLY = True
-else:
-    # Development settings
-    SECURE_SSL_REDIRECT = False
-    SECURE_PROXY_SSL_HEADER = None
+# Security settings - these will be automatically handled by your hosting platform
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = None

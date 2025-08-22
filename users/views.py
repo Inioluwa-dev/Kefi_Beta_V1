@@ -32,18 +32,10 @@ def register_view(request):
         return redirect('posts:feed')
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
-        email = request.POST.get('email')
         if form.is_valid():
-            if not is_email_verified(email):
-                form.add_error('email', 'Please verify your email before signing up.')
-            else:
-                user = form.save()
-                # Clear verification session keys
-                request.session.pop('email_verified', None)
-                request.session.pop('email_verification_code', None)
-                request.session.pop('email_verification_target', None)
-                messages.success(request, 'Account created! You can now log in.')
-                return redirect('users:login')
+            user = form.save()
+            messages.success(request, 'Account created! You can now log in.')
+            return redirect('users:login')
     else:
         form = UserRegisterForm()
     return render(request, 'users/register.html', {'form': form})
@@ -56,7 +48,7 @@ def login_view(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            username = form.cleaned_data['username'].lower()
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -79,7 +71,9 @@ def logout_view(request):
 def profile_view(request, username):
     if not request.user.is_authenticated:
         return redirect(f"/users/login/?next=/users/profile/{username}/&login_required=1")
-    user_obj = get_object_or_404(User, username=username)
+    from users.models import Profile
+    profile = get_object_or_404(Profile, username_lower=username.lower())
+    user_obj = profile.user
     profile = user_obj.profile
     # Only show unblocked posts to everyone, including the owner
     posts = user_obj.posts.filter(blocked=False).order_by('-created_at')
@@ -134,7 +128,9 @@ def edit_profile_view(request):
 def follow_view(request, username):
     if not request.user.is_authenticated:
         return custom_404_view(request)
-    target_user = get_object_or_404(User, username=username)
+    from users.models import Profile
+    target_profile = get_object_or_404(Profile, username_lower=username.lower())
+    target_user = target_profile.user
     target_profile = target_user.profile
     user_profile = request.user.profile
     if target_profile != user_profile:
@@ -148,7 +144,9 @@ def follow_view(request, username):
 def unfollow_view(request, username):
     if not request.user.is_authenticated:
         return custom_404_view(request)
-    target_user = get_object_or_404(User, username=username)
+    from users.models import Profile
+    target_profile = get_object_or_404(Profile, username_lower=username.lower())
+    target_user = target_profile.user
     target_profile = target_user.profile
     user_profile = request.user.profile
     if target_profile != user_profile:
@@ -227,14 +225,18 @@ def send_verification_code(request):
     code = str(random.randint(100000, 999999))
     request.session['email_verification_code'] = code
     request.session['email_verification_target'] = email
-    send_mail(
-        'Your Kefi Email Verification Code',
-        f'Your verification code is: {code}',
-        None,
-        [email],
-        fail_silently=False,
-    )
-    return JsonResponse({'success': True})
+    try:
+        send_mail(
+            'Your Kefi Email Verification Code',
+            f'Your verification code is: {code}',
+            None,
+            [email],
+            fail_silently=False,
+        )
+        return JsonResponse({'success': True})
+    except Exception as e:
+        # Do not leak internal error details to client
+        return JsonResponse({'success': False, 'error': 'Could not send email. Please try again.'}, status=500)
 
 @require_POST
 @csrf_exempt

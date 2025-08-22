@@ -84,7 +84,19 @@ class CameraUpload {
             this.modal.style.display = 'flex';
         } catch (err) {
             console.error('Error accessing camera:', err);
-            alert('Unable to access camera. Please try again.');
+            // Show error in a more user-friendly way
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+        errorMsg.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+        errorMsg.innerHTML = `
+          <strong>Camera Error!</strong> Unable to access camera. Please try again.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(errorMsg);
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+          if (errorMsg.parentNode) errorMsg.remove();
+        }, 5000);
         }
     }
 

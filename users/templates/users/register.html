@@ -39,6 +39,10 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+#register-btn[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 #verify-email-btn.enabled:hover, #verify-email-btn.enabled:focus {
   background: #0e9488;
   color: #fff;
@@ -72,15 +76,25 @@
   <form method="post" class="auth-form" id="signup-form">
     {% csrf_token %}
     <div id="register-error"></div>
+    {% if form.non_field_errors %}
+      <div class="auth-error">
+        {% for error in form.non_field_errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% for field in form %}
       <div style="position:relative;">
         {{ field.label_tag }}
         {% if field.name == 'email' %}
           <div class="verify-email-group">
             {{ field }}
-            <button type="button" id="verify-email-btn" disabled>Verify</button>
+            <button type="button" id="verify-email-btn" disabled><span id="verify-btn-text">Verify</span> <i id="verify-btn-spinner" class="fa fa-spinner fa-spin" style="display:none;"></i></button>
             <button type="button" id="verified-btn" style="display:none;" disabled>Verified</button>
             <span id="verify-email-loading"><i class="fa fa-spinner fa-spin"></i></span>
+          </div>
+          <div style="font-size:0.97em;color:#888;margin-top:0.2rem;margin-bottom:0.7rem;">
+            Please verify your email to enable registration.
           </div>
         {% else %}
           {{ field }}
@@ -90,7 +104,7 @@
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="auth-btn" id="register-btn" disabled><i class="fa fa-user-plus"></i> Register</button>
+  <button type="submit" class="auth-btn" id="register-btn" disabled><span id="register-btn-text"><i class="fa fa-user-plus"></i> Register</span> <i id="register-btn-spinner" class="fa fa-spinner fa-spin" style="display:none;"></i></button>
     <div class="mt-2 text-center">
       <a href="{% url 'users:login' %}" class="auth-link">Already have an account? Login</a>
     </div>
@@ -102,14 +116,15 @@
     <button id="close-verify-modal" style="position:absolute;top:10px;right:16px;background:none;border:none;font-size:1.5rem;color:#14b8a6;cursor:pointer;">&times;</button>
     <h4 style="color:#14b8a6;font-weight:700;margin-bottom:1.2rem;"><i class="fa fa-envelope"></i> Verify Email</h4>
     <form id="verify-code-form" autocomplete="off">
-      <label for="verify-code-input" style="font-weight:500;">Enter the code sent to your email:</label>
-      <input type="text" id="verify-code-input" class="form-control auth-input" maxlength="8" style="margin-bottom:1.2rem;" autocomplete="off">
-      <button type="submit" class="btn btn-main w-100">Verify</button>
-      <div id="verify-code-error" class="auth-error" style="display:none;margin-top:0.7rem;"></div>
+  <label for="verify-code-input" style="font-weight:500;">Enter the code sent to your email:</label>
+  <input type="text" id="verify-code-input" class="form-control auth-input" maxlength="8" style="margin-bottom:1.2rem;" autocomplete="off">
+  <button type="submit" class="btn btn-main w-100" id="verify-code-btn"><span id="verify-code-btn-text">Verify</span> <i id="verify-code-btn-spinner" class="fa fa-spinner fa-spin" style="display:none;"></i></button>
+  <div id="verify-code-error" class="auth-error" style="display:none;margin-top:0.7rem;"></div>
     </form>
   </div>
 </div>
 <script>
+
 const emailInput = document.querySelector('input[name="email"]');
 const verifyBtn = document.getElementById('verify-email-btn');
 const verifiedBtn = document.getElementById('verified-btn');
@@ -118,7 +133,10 @@ const closeModal = document.getElementById('close-verify-modal');
 const registerBtn = document.getElementById('register-btn');
 const registerError = document.getElementById('register-error');
 const verifyLoading = document.getElementById('verify-email-loading');
+
+
 let emailVerified = false;
+let lastVerifiedEmail = null;
 let verifyCooldown = null;
 let verifyCooldownEnd = null;
 
@@ -126,7 +144,7 @@ function validateEmail(email) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
 }
 function updateVerifyBtnState() {
-  if (validateEmail(emailInput.value)) {
+  if (emailInput.value.length > 0) {
     verifyBtn.disabled = false;
     verifyBtn.classList.add('enabled');
     verifyBtn.setAttribute('aria-disabled', 'false');
@@ -168,6 +186,7 @@ async function checkEmailVerifiedState(email) {
     verifyBtn.style.display = '';
     registerBtn.disabled = true;
     emailVerified = false;
+    lastVerifiedEmail = null;
     return;
   }
   try {
@@ -179,13 +198,19 @@ async function checkEmailVerifiedState(email) {
     if (data.verified) {
       verifiedBtn.style.display = '';
       verifyBtn.style.display = 'none';
-      registerBtn.disabled = false;
+    registerBtn.disabled = false;
+// Always keep register button disabled unless email is verified
+setInterval(function() {
+  registerBtn.disabled = !emailVerified;
+}, 200);
       emailVerified = true;
+      lastVerifiedEmail = email;
     } else {
       verifiedBtn.style.display = 'none';
       verifyBtn.style.display = '';
       registerBtn.disabled = true;
       emailVerified = false;
+      lastVerifiedEmail = null;
     }
   } catch (e) {
     verifiedBtn.style.display = 'none';
@@ -195,22 +220,31 @@ async function checkEmailVerifiedState(email) {
   }
 }
 
+
+// Always update verify button state on input
 emailInput.addEventListener('input', function() {
   updateVerifyBtnState();
-  // Reset verification and cooldown if email changes
-  checkEmailVerifiedState(emailInput.value);
-  if (verifyCooldown) {
-    clearInterval(verifyCooldown);
-    verifyBtn.textContent = 'Verify';
+  // Only check verification state if email changes, do not reset UI or emailVerified
+  if (lastVerifiedEmail !== emailInput.value) {
+    if (verifyCooldown) {
+      clearInterval(verifyCooldown);
+      verifyBtn.textContent = 'Verify';
+    }
+    checkEmailVerifiedState(emailInput.value);
   }
 });
-updateVerifyBtnState();
-checkEmailVerifiedState(emailInput.value);
+
+// Ensure verify button state is correct on page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateVerifyBtnState();
+  checkEmailVerifiedState(emailInput.value);
+});
 
 verifyBtn.onclick = async function() {
   if (verifyBtn.disabled) return;
   verifyLoading.style.display = '';
-  verifyBtn.textContent = 'Sending...';
+  document.getElementById('verify-btn-text').style.display = 'none';
+  document.getElementById('verify-btn-spinner').style.display = '';
   verifyBtn.disabled = true;
   try {
     const resp = await fetch("{% url 'users:send_verification_code' %}", {
@@ -221,28 +255,26 @@ verifyBtn.onclick = async function() {
       },
       body: 'email=' + encodeURIComponent(emailInput.value)
     });
-    const data = await resp.json();
-    if (data.success) {
+    let data = null;
+    try { data = await resp.json(); } catch (_) {}
+    if (resp.ok && (!data || data.success)) {
       verifyModal.style.display = 'flex';
       document.getElementById('verify-code-input').focus();
       startVerifyCooldown();
     } else {
       registerError.textContent = data.error || 'Failed to send code.';
       registerError.style.display = 'block';
-      verifyBtn.textContent = 'Verify';
-      verifyBtn.disabled = false;
-      verifyBtn.classList.add('enabled');
-      verifyBtn.setAttribute('aria-disabled', 'false');
     }
   } catch (e) {
     registerError.textContent = 'Network error. Please try again.';
     registerError.style.display = 'block';
-    verifyBtn.textContent = 'Verify';
-    verifyBtn.disabled = false;
-    verifyBtn.classList.add('enabled');
-    verifyBtn.setAttribute('aria-disabled', 'false');
   }
+  document.getElementById('verify-btn-text').style.display = '';
+  document.getElementById('verify-btn-spinner').style.display = 'none';
   verifyLoading.style.display = 'none';
+  verifyBtn.disabled = false;
+  verifyBtn.classList.add('enabled');
+  verifyBtn.setAttribute('aria-disabled', 'false');
 };
 closeModal.onclick = function() {
   verifyModal.style.display = 'none';
@@ -254,7 +286,13 @@ document.getElementById('verify-code-form').onsubmit = async function(e) {
   e.preventDefault();
   const code = document.getElementById('verify-code-input').value.trim();
   const errorDiv = document.getElementById('verify-code-error');
+  const verifyCodeBtn = document.getElementById('verify-code-btn');
+  const verifyCodeBtnText = document.getElementById('verify-code-btn-text');
+  const verifyCodeBtnSpinner = document.getElementById('verify-code-btn-spinner');
   errorDiv.style.display = 'none';
+  verifyCodeBtn.disabled = true;
+  verifyCodeBtnText.style.display = 'none';
+  verifyCodeBtnSpinner.style.display = '';
   try {
     const resp = await fetch("{% url 'users:verify_code' %}", {
       method: 'POST',
@@ -264,8 +302,9 @@ document.getElementById('verify-code-form').onsubmit = async function(e) {
       },
       body: 'email=' + encodeURIComponent(emailInput.value) + '&code=' + encodeURIComponent(code)
     });
-    const data = await resp.json();
-    if (data.success) {
+    let data = null;
+    try { data = await resp.json(); } catch (_) {}
+    if (resp.ok && data && data.success) {
       verifyModal.style.display = 'none';
       verifyBtn.style.display = 'none';
       verifiedBtn.style.display = '';
@@ -280,20 +319,16 @@ document.getElementById('verify-code-form').onsubmit = async function(e) {
     errorDiv.textContent = 'Network error. Please try again.';
     errorDiv.style.display = 'block';
   }
+  verifyCodeBtn.disabled = false;
+  verifyCodeBtnText.style.display = '';
+  verifyCodeBtnSpinner.style.display = 'none';
 };
 const signupForm = document.getElementById('signup-form');
 signupForm.onsubmit = function(e) {
-  if (!emailVerified) {
-    e.preventDefault();
-    registerError.textContent = 'Please verify your email before signing up.';
-    registerError.style.display = 'block';
-    registerBtn.disabled = true;
-    return false;
-  }
+  // Show spinner and disable register button during submission
+  document.getElementById('register-btn-text').style.display = 'none';
+  document.getElementById('register-btn-spinner').style.display = '';
+  registerBtn.disabled = true;
 };
-// Always keep register button disabled unless email is verified
-setInterval(function() {
-  registerBtn.disabled = !emailVerified;
-}, 200);
 </script>
 {% endblock %}

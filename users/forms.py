@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, PasswordResetForm as Dja
 from .models import Profile
 
 class UserRegisterForm(UserCreationForm):
+    # No backend email verification check; handled by frontend only
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control auth-input'}))
 
     class Meta:
@@ -14,6 +15,11 @@ class UserRegisterForm(UserCreationForm):
             'password1': forms.PasswordInput(attrs={'class': 'form-control auth-input'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control auth-input'}),
         }
+
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.lower()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,6 +32,10 @@ class UserRegisterForm(UserCreationForm):
 class UserLoginForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control auth-input'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control auth-input'}))
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        return username.lower()
 
 class CustomPasswordResetForm(DjangoPasswordResetForm):
     def __init__(self, *args, **kwargs):

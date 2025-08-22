@@ -20,6 +20,7 @@ urlpatterns = [
     path('cookies/', views.cookie_policy_view, name='cookie_policy'),
     path('ajax/send_verification_code/', views.send_verification_code, name='send_verification_code'),
     path('ajax/verify_code/', views.verify_code, name='verify_code'),
+    path('email_verified/', views.email_verified_view, name='email_verified'),
 ]
 
 urlpatterns += [

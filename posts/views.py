@@ -22,13 +22,51 @@ from utils.b2_signed_url import generate_b2_signed_url
 def feed_view(request):
     if not request.user.is_authenticated:
         return redirect(f"/users/login/?next=/posts/feed/&login_required=1")
-    posts = Post.objects.filter(blocked=False).order_by('?')
-    for post in posts:
-        if post.image:
+    highlight_post = None
+    highlight_post_id = request.session.pop('highlight_post_id', None)
+    if highlight_post_id:
+        try:
+            candidate = Post.objects.get(pk=highlight_post_id, blocked=False)
+            if candidate.user_id == request.user.id:
+                highlight_post = candidate
+        except Post.DoesNotExist:
+            highlight_post = None
+
+    if highlight_post is not None:
+        rest_posts_qs = Post.objects.filter(blocked=False).exclude(pk=highlight_post.pk).order_by('?')
+        posts_list = [highlight_post] + list(rest_posts_qs)
+    else:
+        posts_list = list(Post.objects.filter(blocked=False).order_by('?'))
+
+    # Add follow suggestions every 5 posts
+    posts_with_suggestions = []
+    for i, post in enumerate(posts_list):
+        posts_with_suggestions.append(post)
+        # Add follow suggestions after every 5th post (except the last one)
+        if (i + 1) % 5 == 0 and i < len(posts_list) - 1:
+            # Get following IDs for the current user
+            following = set(request.user.profile.following.values_list('user__id', flat=True))
+            # Get suggested users (excluding already followed and self)
+            suggested_users = User.objects.exclude(
+                id__in=following
+            ).exclude(
+                id=request.user.id
+            ).order_by('?')[:3]
+            
+            if suggested_users:
+                posts_with_suggestions.append({
+                    'type': 'suggestions',
+                    'suggested_users': suggested_users,
+                    'following_ids': following
+                })
+
+    for post in posts_with_suggestions:
+        if hasattr(post, 'image') and post.image:
             post.signed_image_url = generate_b2_signed_url(post.image.name)
         else:
             post.signed_image_url = None
-    return render(request, 'posts/feed.html', {'posts': posts})
+            
+    return render(request, 'posts/feed.html', {'posts': posts_with_suggestions})
 
 def post_create_view(request):
     if not request.user.is_authenticated:
@@ -41,6 +79,8 @@ def post_create_view(request):
             post.user = request.user
             post.save()
             messages.success(request, 'Post created!')
+            # Make sure the creator sees their new post at the very top of their feed once
+            request.session['highlight_post_id'] = post.pk
             return redirect('posts:feed')
     else:
         form = PostForm()
@@ -212,11 +252,40 @@ def feed_api_view(request):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     page = int(request.GET.get('page', 1))
     page_size = int(request.GET.get('page_size', 10))
-    posts = Post.objects.filter(blocked=False).order_by('-created_at')
+    # Build the page with author's most recent created post highlighted first if present
+    highlight_post = None
+    highlight_post_id = request.session.pop('highlight_post_id', None)
+    if highlight_post_id:
+        try:
+            candidate = Post.objects.get(pk=highlight_post_id, blocked=False)
+            if candidate.user_id == request.user.id:
+                highlight_post = candidate
+        except Post.DoesNotExist:
+            highlight_post = None
+
+    base_qs = Post.objects.filter(blocked=False).order_by('-created_at')
+    if highlight_post is not None:
+        posts = base_qs.exclude(pk=highlight_post.pk)
+    else:
+        posts = base_qs
     paginator = Paginator(posts, page_size)
     page_obj = paginator.get_page(page)
     html = ''
     count = 0
+    # If first page and we have a highlight, render it first
+    if page == 1 and highlight_post is not None:
+        html += render_to_string('posts/post_card.html', {'post': highlight_post, 'request': request})
+        count += 1
+        if count % 5 == 0:
+            from django.contrib.auth.models import User
+            following = set(request.user.profile.following.values_list('user__id', flat=True))
+            suggestions = User.objects.exclude(id__in=following).exclude(id=request.user.id).order_by('?')[:3]
+            html += render_to_string('posts/follow_suggestions.html', {
+                'suggested_users': suggestions,
+                'request': request,
+                'following_ids': following,
+            })
+
     for post in page_obj:
         html += render_to_string('posts/post_card.html', {'post': post, 'request': request})
         count += 1
