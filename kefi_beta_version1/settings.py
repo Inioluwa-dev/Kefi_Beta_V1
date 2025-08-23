@@ -236,6 +236,10 @@ EMAIL_HOST_USER = os.environ.get('GMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASSWORD')
 DEFAULT_FROM_EMAIL = f"Kefi <{os.environ.get('GMAIL_USER')}>"
 
+# CSRF trusted origins for production
+CSRF_TRUSTED_ORIGINS = [
+    "https://kefi.onrender.com",
+]
 # Security settings - these will be automatically handled by your hosting platform
 SECURE_SSL_REDIRECT = False
 SECURE_PROXY_SSL_HEADER = None
