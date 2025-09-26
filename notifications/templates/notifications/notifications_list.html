@@ -106,11 +106,18 @@
 }
 </style>
 <div class="notifications-container">
-  <h2 class="mb-4" style="color: var(--primary); font-weight: 700; text-align: center;"><i class="fa fa-bell"></i> Notifications</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="color: var(--primary); font-weight: 700; margin: 0;"><i class="fa fa-bell"></i> Notifications</h2>
+    {% if notifications %}
+      <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-outline-primary btn-sm">
+        <i class="fa fa-check-double"></i> Mark All Read
+      </a>
+    {% endif %}
+  </div>
   {% for notification in notifications %}
     <div class="notification-card{% if not notification.is_read %} unread{% endif %}" onclick="window.location='{% url 'notifications:mark_read' notification.pk %}'">
       {% if notification.from_user and notification.notification_type != 'report' %}
-                        <img src="{{ notification.from_user.profile.get_profile_pic_url }}" class="notification-avatar" alt="Avatar">
+        <img src="{{ notification.from_user.profile.get_profile_pic_url }}" class="notification-avatar" alt="Avatar" onerror="this.src='{% load static %}{% static 'users/default.jpg' %}'">
       {% endif %}
       <span class="notification-icon {% if notification.notification_type == 'like' %}like{% elif notification.notification_type == 'comment' %}comment{% elif notification.notification_type == 'follow' %}follow{% elif notification.notification_type == 'report' %}report{% endif %}">
         {% if notification.notification_type == 'report' %}
@@ -171,7 +178,11 @@
     </div>
     {% if not forloop.last %}<div class="soft-divider"></div>{% endif %}
   {% empty %}
-    <div class="alert alert-info">No notifications.</div>
+    <div class="text-center py-5">
+      <i class="fa fa-bell-slash fa-3x mb-3" style="color: var(--primary); opacity: 0.3;"></i>
+      <h4 style="color: var(--primary); opacity: 0.7;">No notifications yet</h4>
+      <p class="text-muted">When someone likes your posts, comments, or follows you, you'll see it here!</p>
+    </div>
   {% endfor %}
 </div>
 {% endblock %}

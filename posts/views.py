@@ -53,14 +53,17 @@ def feed_view(request):
                 id=request.user.id
             ).order_by('?')[:3]
             
-            if suggested_users:
-                posts_with_suggestions.append({
-                    'type': 'suggestions',
-                    'suggested_users': suggested_users,
-                    'following_ids': following
-                })
+            # Always add suggestions section, even if empty
+            posts_with_suggestions.append({
+                'type': 'suggestions',
+                'suggested_users': suggested_users,
+                'following_ids': following
+            })
 
     for post in posts_with_suggestions:
+        # Only process actual Post objects, not suggestion dictionaries
+        if isinstance(post, dict):
+            continue
         if hasattr(post, 'image') and post.image:
             post.signed_image_url = generate_b2_signed_url(post.image.name)
         else:

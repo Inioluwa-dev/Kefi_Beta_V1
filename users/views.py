@@ -14,6 +14,7 @@ import random
 from django.core.mail import send_mail
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from .email_utils import send_welcome_email, send_verification_email
 
 class ReactivatePasswordResetConfirmView(PasswordResetConfirmView):
     def form_valid(self, form):
@@ -34,6 +35,14 @@ def register_view(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
+            
+            # Send welcome email
+            try:
+                send_welcome_email(user, request)
+            except Exception as e:
+                print(f"Failed to send welcome email: {e}")
+                # Don't fail registration if email sending fails
+            
             messages.success(request, 'Account created! You can now log in.')
             return redirect('users:login')
     else:
@@ -129,12 +138,21 @@ def follow_view(request, username):
     if not request.user.is_authenticated:
         return custom_404_view(request)
     from users.models import Profile
+    from notifications.models import Notification
     target_profile = get_object_or_404(Profile, username_lower=username.lower())
     target_user = target_profile.user
     target_profile = target_user.profile
     user_profile = request.user.profile
     if target_profile != user_profile:
         user_profile.following.add(target_profile)  # Add Profile, not User!
+        
+        # Create follow notification
+        Notification.objects.create(
+            to_user=target_user,
+            from_user=request.user,
+            notification_type='follow'
+        )
+        
         messages.success(request, f'You are now following {target_user.username}.')
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'status': 'ok'})
@@ -226,13 +244,8 @@ def send_verification_code(request):
     request.session['email_verification_code'] = code
     request.session['email_verification_target'] = email
     try:
-        send_mail(
-            'Your Kefi Email Verification Code',
-            f'Your verification code is: {code}',
-            None,
-            [email],
-            fail_silently=False,
-        )
+        # Use the new HTML email template
+        send_verification_email(email, code, request)
         return JsonResponse({'success': True})
     except Exception as e:
         # Do not leak internal error details to client
@@ -257,10 +270,25 @@ def verify_code(request):
     return JsonResponse({'success': False, 'error': 'Invalid code or email.'}, status=400)
 
 def user_exists_view(request):
-    username = request.GET.get('username', '').strip()
+    username = request.GET.get('username', '').strip().lower()
+    
+    # Basic validation
+    if not username:
+        return JsonResponse({'exists': False, 'valid': False, 'message': 'Username is required'})
+    
+    if len(username) < 3:
+        return JsonResponse({'exists': False, 'valid': False, 'message': 'Username must be at least 3 characters'})
+    
+    if len(username) > 30:
+        return JsonResponse({'exists': False, 'valid': False, 'message': 'Username must be less than 30 characters'})
+    
+    # Check for valid characters (alphanumeric and underscore only)
+    if not username.replace('_', '').isalnum():
+        return JsonResponse({'exists': False, 'valid': False, 'message': 'Username can only contain letters, numbers, and underscores'})
+    
     from django.contrib.auth.models import User
-    exists = User.objects.filter(username=username).exists()
-    return JsonResponse({'exists': exists})
+    exists = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse({'exists': exists, 'valid': True})
 
 def email_verified_view(request):
     email = request.GET.get('email', '').strip()

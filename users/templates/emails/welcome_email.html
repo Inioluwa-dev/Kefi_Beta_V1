@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Kefi!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #14b8a6 0%, #0e9488 100%);
+            padding: 50px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 42px;
+            font-weight: 800;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+        .header .kefi-logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            font-size: 18px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .welcome-message h2 {
+            color: #14b8a6;
+            font-size: 28px;
+            margin: 0 0 20px 0;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(20, 184, 166, 0.1);
+        }
+        .welcome-message p {
+            color: #4a5568;
+            font-size: 18px;
+            margin: 0;
+            line-height: 1.7;
+        }
+        .kefi-brand {
+            color: #14b8a6;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(20, 184, 166, 0.2);
+        }
+        .features {
+            background-color: #f7fafc;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .features h3 {
+            color: #14b8a6;
+            font-size: 20px;
+            margin: 0 0 25px 0;
+            font-weight: 700;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(20, 184, 166, 0.1);
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+        .feature-icon {
+            background-color: #14b8a6;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .feature-text {
+            color: #4a5568;
+            font-size: 14px;
+            flex: 1;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #14b8a6 0%, #0e9488 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 40px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(20, 184, 166, 0.5);
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer p {
+            color: #718096;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #14b8a6;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+            margin: 25px 0;
+        }
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .header, .content, .footer {
+                padding: 25px 20px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="kefi-logo">KEFI</div>
+            <h1>🎉 Welcome to the Community!</h1>
+            <p>Your journey to meaningful connections starts here</p>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-message">
+                <h2>Hello {{ user.first_name|default:user.username }}! 👋</h2>
+                <p>We're thrilled to have you join the <span class="kefi-brand">Kefi</span> community. You're now part of a vibrant network where students connect, share, and grow together.</p>
+            </div>
+            
+            <div class="features">
+                <h3>🚀 What you can do on Kefi:</h3>
+                <div class="feature-item">
+                    <div class="feature-icon">📝</div>
+                    <div class="feature-text">Share posts, thoughts, and experiences with your peers</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💬</div>
+                    <div class="feature-text">Connect and chat with other students through direct messages</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔔</div>
+                    <div class="feature-text">Stay updated with real-time notifications</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-text">Build your network and discover new friends</div>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <a href="{{ site_url }}/posts/feed/" class="cta-button">Start Exploring Kefi</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div style="text-align: center; color: #718096; font-size: 14px;">
+                <p><strong>Need help getting started?</strong></p>
+                <p>Check out our community guidelines and feel free to reach out if you have any questions. The <span class="kefi-brand">Kefi</span> team is here to help!</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="social-links">
+                <a href="#">Help Center</a>
+                <a href="#">Community Guidelines</a>
+                <a href="#">Contact Support</a>
+            </div>
+            <p>© 2024 <span class="kefi-brand">Kefi</span>. All rights reserved.</p>
+            <p>This email was sent to {{ user.email }} because you created an account on <span class="kefi-brand">Kefi</span>.</p>
+            <p style="font-size: 12px; color: #a0aec0;">
+                If you didn't create this account, please ignore this email or contact our support team.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

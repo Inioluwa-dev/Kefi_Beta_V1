@@ -1,6 +1,12 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm as DjangoPasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.urls import reverse
 from .models import Profile
 
 class UserRegisterForm(UserCreationForm):
@@ -41,6 +47,57 @@ class CustomPasswordResetForm(DjangoPasswordResetForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget.attrs.update({'class': 'form-control auth-input'})
+    
+    def save(self, domain_override=None, subject_template_name='registration/password_reset_subject.txt',
+             email_template_name='registration/password_reset_email.html',
+             use_https=False, token_generator=default_token_generator,
+             from_email=None, request=None, html_email_template_name=None,
+             extra_email_context=None):
+        """
+        Override save method to use our custom HTML email template
+        """
+        email = self.cleaned_data["email"]
+        if not domain_override:
+            current_site = get_current_site(request)
+            site_name = current_site.name
+            domain = current_site.domain
+            # Ensure we don't use localhost in production
+            if 'localhost' in domain or '127.0.0.1' in domain:
+                domain = 'kefi.onrender.com'
+        else:
+            site_name = domain = domain_override
+        
+        email_field_name = User.get_email_field_name()
+        for user in self.get_users(email):
+            if not user.is_active:
+                continue
+            user_email = getattr(user, email_field_name)
+            context = {
+                'email': user_email,
+                'domain': domain,
+                'site_name': site_name,
+                'uid': user.pk,
+                'user': user,
+                'token': token_generator.make_token(user),
+                'protocol': 'https' if use_https else 'http',
+                **(extra_email_context or {}),
+            }
+            
+            # Use our custom HTML email template
+            html_content = render_to_string('emails/password_reset_email.html', context)
+            
+            subject = f"🔑 Reset Your Password - Kefi"
+            from_email = from_email or settings.DEFAULT_FROM_EMAIL
+            
+            email_message = EmailMultiAlternatives(
+                subject=subject,
+                body=f"Click the link to reset your password: {context['protocol']}://{domain}{reverse('password_reset_confirm', kwargs={'uidb64': context['uid'], 'token': context['token']})}",
+                from_email=from_email,
+                to=[user_email],
+            )
+            
+            email_message.attach_alternative(html_content, "text/html")
+            email_message.send()
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:

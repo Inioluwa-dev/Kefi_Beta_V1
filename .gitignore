@@ -16,4 +16,8 @@ db.sqlite3
 .vscode/
 .idea/ 
 
+# Developer notes
+dev.txt
+PROJECT_DEV_NOTES.txt
+
 ca.pem 

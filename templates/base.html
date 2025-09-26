@@ -167,6 +167,32 @@
     });
   });
 
+  // Real-time notification count updates
+  function updateNotificationCount() {
+    if ({% if user.is_authenticated %}true{% else %}false{% endif %}) {
+      fetch('{% url "notifications:count_api" %}')
+        .then(response => response.json())
+        .then(data => {
+          const badge = document.querySelector('.notification-badge');
+          if (badge) {
+            if (data.count > 0) {
+              badge.textContent = data.count;
+              badge.style.display = 'inline';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+        })
+        .catch(error => console.log('Error updating notification count:', error));
+    }
+  }
+
+  // Update notification count every 30 seconds
+  if ({% if user.is_authenticated %}true{% else %}false{% endif %}) {
+    updateNotificationCount();
+    setInterval(updateNotificationCount, 30000);
+  }
+
   // Web Push Notification logic
   if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register("{% static 'users/serviceworker.js' %}").then(function(reg) {

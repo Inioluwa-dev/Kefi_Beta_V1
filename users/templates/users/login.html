@@ -31,13 +31,38 @@
         {% endif %}
       </div>
     {% endfor %}
-    <button type="submit" class="auth-btn"><i class="fa fa-sign-in-alt"></i> Login</button>
+    <button type="submit" class="auth-btn" id="login-btn">
+      <i class="fa fa-sign-in-alt" id="login-icon"></i> 
+      <span id="login-text">Login</span>
+      <i class="fa fa-spinner fa-spin" id="login-spinner" style="display: none;"></i>
+    </button>
     <div class="d-flex justify-content-between mt-2">
       <a href="{% url 'password_reset' %}" class="auth-link">Forgot password?</a>
       <a href="{% url 'users:register' %}" class="auth-link">Sign up</a>
     </div>
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loginForm = document.querySelector('.auth-form');
+  const loginBtn = document.getElementById('login-btn');
+  const loginIcon = document.getElementById('login-icon');
+  const loginText = document.getElementById('login-text');
+  const loginSpinner = document.getElementById('login-spinner');
+
+  loginForm.addEventListener('submit', function() {
+    // Disable the button and show loading animation
+    loginBtn.disabled = true;
+    loginIcon.style.display = 'none';
+    loginText.textContent = 'Logging in...';
+    loginSpinner.style.display = 'inline';
+    
+    // Add loading class for visual feedback
+    loginBtn.classList.add('loading');
+  });
+});
+</script>
 <style>
 .login-required-popup {
   background: var(--danger, #ef4444);
@@ -52,6 +77,17 @@
   font-size: 1.08rem;
   box-shadow: 0 2px 8px 0 rgba(239,68,68,0.13);
   animation: fadeInPop 0.5s;
+}
+
+/* Login button loading state */
+.auth-btn.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.auth-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 .login-required-cancel {
   background: none;

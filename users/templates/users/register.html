@@ -67,6 +67,69 @@
   color: #14b8a6;
   font-size: 1.1rem;
 }
+.username-check-group {
+  position: relative;
+}
+.username-check-group input {
+  margin-bottom: 0;
+}
+.username-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+.username-status.available {
+  color: #14b8a6;
+}
+.username-status.taken {
+  color: #e63946;
+}
+.username-status.checking {
+  color: #6c757d;
+}
+.username-status-icon {
+  font-size: 0.8rem;
+}
+.password-toggle-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-toggle-group input {
+  flex: 1;
+  margin-bottom: 0;
+  padding-right: 3rem;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  z-index: 10;
+}
+.password-toggle-btn:hover {
+  color: #14b8a6;
+}
+.password-toggle-btn:focus {
+  outline: none;
+  color: #14b8a6;
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -96,11 +159,29 @@
           <div style="font-size:0.97em;color:#888;margin-top:0.2rem;margin-bottom:0.7rem;">
             Please verify your email to enable registration.
           </div>
+        {% elif field.name == 'username' %}
+          <div class="username-check-group">
+            {{ field }}
+          </div>
+        {% elif field.name == 'password1' or field.name == 'password2' %}
+          <div class="password-toggle-group">
+            {{ field }}
+            <button type="button" class="password-toggle-btn" data-target="{{ field.name }}">
+              <i class="fa fa-eye" data-icon="eye"></i>
+              <i class="fa fa-eye-slash" data-icon="eye-slash" style="display: none;"></i>
+            </button>
+          </div>
         {% else %}
           {{ field }}
         {% endif %}
         {% if field.errors %}
           <div class="auth-error">{{ field.errors|striptags }}</div>
+        {% endif %}
+        {% if field.name == 'username' %}
+          <div id="username-status" class="username-status" style="display:none;">
+            <i class="username-status-icon"></i>
+            <span class="username-status-text"></span>
+          </div>
         {% endif %}
       </div>
     {% endfor %}
@@ -156,10 +237,10 @@ function updateVerifyBtnState() {
 }
 
 function startVerifyCooldown() {
-  let seconds = 120;
+  let seconds = 30;
   verifyBtn.disabled = true;
   verifyBtn.classList.remove('enabled');
-  verifyBtn.textContent = `Wait 2:00`;
+  verifyBtn.textContent = `Wait 0:30`;
   verifyBtn.setAttribute('aria-disabled', 'true');
   verifyCooldownEnd = Date.now() + seconds * 1000;
   verifyCooldown = setInterval(() => {
@@ -167,7 +248,7 @@ function startVerifyCooldown() {
     let remaining = Math.max(0, Math.round((verifyCooldownEnd - now) / 1000));
     let min = Math.floor(remaining / 60);
     let sec = remaining % 60;
-    verifyBtn.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+    verifyBtn.textContent = `Wait ${min}:${sec.toString().padStart(2, '0')}`;
     if (remaining <= 0) {
       clearInterval(verifyCooldown);
       verifyBtn.textContent = 'Verify';
@@ -180,57 +261,55 @@ function startVerifyCooldown() {
   }, 1000);
 }
 
-async function checkEmailVerifiedState(email) {
+function checkEmailVerifiedState(email) {
   if (!validateEmail(email)) {
     verifiedBtn.style.display = 'none';
     verifyBtn.style.display = '';
-    registerBtn.disabled = true;
     emailVerified = false;
     lastVerifiedEmail = null;
+    updateRegisterButtonState();
     return;
   }
-  try {
-    const resp = await fetch('/users/exists/?username=' + encodeURIComponent(email));
-    // This endpoint checks username, not email, so let's use a new endpoint for email verification check
-    // We'll assume you have an endpoint /users/email_verified/?email=...
-    const resp2 = await fetch(`/users/email_verified/?email=${encodeURIComponent(email)}`);
-    const data = await resp2.json();
-    if (data.verified) {
-      verifiedBtn.style.display = '';
-      verifyBtn.style.display = 'none';
-    registerBtn.disabled = false;
-// Always keep register button disabled unless email is verified
-setInterval(function() {
-  registerBtn.disabled = !emailVerified;
-}, 200);
-      emailVerified = true;
-      lastVerifiedEmail = email;
-    } else {
-      verifiedBtn.style.display = 'none';
-      verifyBtn.style.display = '';
-      registerBtn.disabled = true;
-      emailVerified = false;
-      lastVerifiedEmail = null;
-    }
-  } catch (e) {
+  
+  // Check localStorage for verified email
+  const verifiedEmail = localStorage.getItem('verifiedEmail');
+  if (verifiedEmail === email) {
+    verifiedBtn.style.display = '';
+    verifyBtn.style.display = 'none';
+    emailVerified = true;
+    lastVerifiedEmail = email;
+    updateRegisterButtonState();
+  } else {
     verifiedBtn.style.display = 'none';
     verifyBtn.style.display = '';
-    registerBtn.disabled = true;
     emailVerified = false;
+    lastVerifiedEmail = null;
+    updateRegisterButtonState();
   }
 }
 
 
-// Always update verify button state on input
+// Update verify button state on input
 emailInput.addEventListener('input', function() {
   updateVerifyBtnState();
-  // Only check verification state if email changes, do not reset UI or emailVerified
+  // Check verification state only if email changes
   if (lastVerifiedEmail !== emailInput.value) {
     if (verifyCooldown) {
       clearInterval(verifyCooldown);
       verifyBtn.textContent = 'Verify';
     }
-    checkEmailVerifiedState(emailInput.value);
+    
+    // If user changes to a different email, clear verification state
+    const verifiedEmail = localStorage.getItem('verifiedEmail');
+    if (verifiedEmail && verifiedEmail !== emailInput.value) {
+      emailVerified = false;
+      lastVerifiedEmail = null;
+      verifiedBtn.style.display = 'none';
+      verifyBtn.style.display = '';
+      updateRegisterButtonState();
+    } else {
+      checkEmailVerifiedState(emailInput.value);
+    }
   }
 });
 
@@ -238,6 +317,16 @@ emailInput.addEventListener('input', function() {
 document.addEventListener('DOMContentLoaded', function() {
   updateVerifyBtnState();
   checkEmailVerifiedState(emailInput.value);
+  
+  // Restore email verification state from localStorage if email matches
+  const verifiedEmail = localStorage.getItem('verifiedEmail');
+  if (verifiedEmail && verifiedEmail === emailInput.value) {
+    emailVerified = true;
+    lastVerifiedEmail = verifiedEmail;
+    verifiedBtn.style.display = '';
+    verifyBtn.style.display = 'none';
+    updateRegisterButtonState();
+  }
 });
 
 verifyBtn.onclick = async function() {
@@ -308,9 +397,12 @@ document.getElementById('verify-code-form').onsubmit = async function(e) {
       verifyModal.style.display = 'none';
       verifyBtn.style.display = 'none';
       verifiedBtn.style.display = '';
-      registerBtn.disabled = false;
       registerError.style.display = 'none';
       emailVerified = true;
+      lastVerifiedEmail = emailInput.value;
+      // Store verified email in localStorage
+      localStorage.setItem('verifiedEmail', emailInput.value);
+      updateRegisterButtonState();
     } else {
       errorDiv.textContent = data.error || 'Invalid code. Please try again.';
       errorDiv.style.display = 'block';
@@ -323,12 +415,138 @@ document.getElementById('verify-code-form').onsubmit = async function(e) {
   verifyCodeBtnText.style.display = '';
   verifyCodeBtnSpinner.style.display = 'none';
 };
+// Username availability checking
+const usernameInput = document.querySelector('input[name="username"]');
+const usernameStatus = document.getElementById('username-status');
+const usernameStatusIcon = document.querySelector('.username-status-icon');
+const usernameStatusText = document.querySelector('.username-status-text');
+
+let usernameCheckTimeout = null;
+let isUsernameAvailable = false;
+let isCheckingUsername = false;
+
+function showUsernameStatus(status, text, iconClass) {
+  usernameStatus.style.display = 'flex';
+  usernameStatus.className = `username-status ${status}`;
+  usernameStatusText.textContent = text;
+  if (status === 'available') {
+    // Don't show icon for available status
+    usernameStatusIcon.style.display = 'none';
+  } else {
+    usernameStatusIcon.style.display = 'inline';
+    usernameStatusIcon.className = `username-status-icon ${iconClass}`;
+  }
+}
+
+function hideUsernameStatus() {
+  usernameStatus.style.display = 'none';
+  usernameStatus.className = 'username-status';
+}
+
+async function checkUsernameAvailability(username) {
+  if (!username || username.length < 3) {
+    hideUsernameStatus();
+    isUsernameAvailable = false;
+    updateRegisterButtonState();
+    return;
+  }
+
+  isCheckingUsername = true;
+  showUsernameStatus('checking', 'Checking...', 'fa fa-spinner fa-spin');
+  updateRegisterButtonState();
+
+  try {
+    const response = await fetch(`/users/exists/?username=${encodeURIComponent(username)}`);
+    const data = await response.json();
+    
+    if (!data.valid) {
+      showUsernameStatus('taken', data.message || 'Invalid username', 'fa fa-exclamation-triangle');
+      isUsernameAvailable = false;
+    } else if (data.exists) {
+      showUsernameStatus('taken', `"${username}" is taken`, 'fa fa-times');
+      isUsernameAvailable = false;
+    } else {
+      showUsernameStatus('available', `"${username}" is available`, 'fa fa-check');
+      isUsernameAvailable = true;
+    }
+  } catch (error) {
+    console.error('Error checking username:', error);
+    showUsernameStatus('taken', 'Error checking', 'fa fa-exclamation-triangle');
+    isUsernameAvailable = false;
+  } finally {
+    isCheckingUsername = false;
+    updateRegisterButtonState();
+  }
+}
+
+function updateRegisterButtonState() {
+  // Only enable register button if email is verified AND username is available
+  const canRegister = emailVerified && isUsernameAvailable && !isCheckingUsername;
+  registerBtn.disabled = !canRegister;
+}
+
+// Debounced username checking
+usernameInput.addEventListener('input', function() {
+  const username = usernameInput.value.trim().toLowerCase();
+  
+  // Clear previous timeout
+  if (usernameCheckTimeout) {
+    clearTimeout(usernameCheckTimeout);
+  }
+  
+  // Set new timeout for debounced checking
+  usernameCheckTimeout = setTimeout(() => {
+    checkUsernameAvailability(username);
+  }, 500); // 500ms delay
+});
+
+// Check username on page load if there's already a value
+document.addEventListener('DOMContentLoaded', function() {
+  const username = usernameInput.value.trim().toLowerCase();
+  if (username) {
+    checkUsernameAvailability(username);
+  }
+});
+
+// Password toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const passwordToggleBtns = document.querySelectorAll('.password-toggle-btn');
+  
+  passwordToggleBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const targetFieldName = this.getAttribute('data-target');
+      const passwordInput = document.querySelector(`input[name="${targetFieldName}"]`);
+      const eyeIcon = this.querySelector('[data-icon="eye"]');
+      const eyeSlashIcon = this.querySelector('[data-icon="eye-slash"]');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.style.display = 'none';
+        eyeSlashIcon.style.display = 'inline';
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.style.display = 'inline';
+        eyeSlashIcon.style.display = 'none';
+      }
+    });
+  });
+});
+
 const signupForm = document.getElementById('signup-form');
 signupForm.onsubmit = function(e) {
+  // Prevent submission if username is not available
+  if (!isUsernameAvailable || isCheckingUsername) {
+    e.preventDefault();
+    return false;
+  }
+  
   // Show spinner and disable register button during submission
   document.getElementById('register-btn-text').style.display = 'none';
   document.getElementById('register-btn-spinner').style.display = '';
   registerBtn.disabled = true;
+  
+  // Don't prevent form submission - let it proceed even if there are validation errors
+  // The email verification state will be preserved via localStorage
 };
 </script>
 {% endblock %}

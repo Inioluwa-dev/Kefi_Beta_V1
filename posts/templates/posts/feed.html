@@ -85,73 +85,55 @@ function attachFollowAjaxHandlers() {
   document.querySelectorAll('.follow-btn-ajax').forEach(btn => {
     if (btn.dataset.ajaxAttached) return;
     btn.dataset.ajaxAttached = '1';
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
       const url = btn.getAttribute('data-url');
       const isFollowing = btn.getAttribute('data-following') === '1';
+      const originalText = btn.innerHTML;
+      
       btn.disabled = true;
+      btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Loading...';
+      
       fetch(url, {
         method: 'POST',
         headers: {
           'X-CSRFToken': getCookie('csrftoken'),
           'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
       }).then(res => {
         if (res.ok) {
-                     if (isFollowing) {
-             // Unfollowed: change to Follow
-             btn.textContent = 'Follow';
-             btn.classList.remove('btn-success');
-             btn.classList.add('btn-main');
-             btn.setAttribute('data-following', '0');
-             btn.setAttribute('data-url', btn.getAttribute('data-url').replace('unfollow', 'follow'));
-             btn.innerHTML = '<i class="fa fa-user-plus"></i> Follow';
-             
-             // Show success message
-             showToast('Success! You unfollowed this user.', 'success');
-           } else {
-             // Followed: change to Following
-             btn.textContent = 'Following';
-             btn.classList.remove('btn-main');
-             btn.classList.add('btn-success');
-             btn.setAttribute('data-following', '1');
-             btn.setAttribute('data-url', btn.getAttribute('data-url').replace('follow', 'unfollow'));
-             btn.innerHTML = '<i class="fa fa-user-check"></i> Following';
-             
-             // Show success message
-             showToast('Success! You are now following this user.', 'success');
-           }
-           btn.disabled = false;
+          if (isFollowing) {
+            // Unfollowed: change to Follow
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-main');
+            btn.setAttribute('data-following', '0');
+            btn.setAttribute('data-url', btn.getAttribute('data-url').replace('unfollow', 'follow'));
+            btn.innerHTML = '<i class="fa fa-user-plus"></i> Follow';
+            
+            // Show success message
+            showToast('Success! You unfollowed this user.', 'success');
+          } else {
+            // Followed: change to Following
+            btn.classList.remove('btn-main');
+            btn.classList.add('btn-success');
+            btn.setAttribute('data-following', '1');
+            btn.setAttribute('data-url', btn.getAttribute('data-url').replace('follow', 'unfollow'));
+            btn.innerHTML = '<i class="fa fa-user-check"></i> Following';
+            
+            // Show success message
+            showToast('Success! You are now following this user.', 'success');
+          }
+          btn.disabled = false;
         } else {
           btn.disabled = false;
-          // Show error in a more user-friendly way
-          const errorMsg = document.createElement('div');
-          errorMsg.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-          errorMsg.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
-          errorMsg.innerHTML = `
-            <strong>Error!</strong> Could not update follow status.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          `;
-          document.body.appendChild(errorMsg);
-          // Auto-remove after 5 seconds
-          setTimeout(() => {
-            if (errorMsg.parentNode) errorMsg.remove();
-          }, 5000);
+          btn.innerHTML = originalText;
+          showToast('Error! Could not update follow status.', 'danger');
         }
       }).catch(() => {
         btn.disabled = false;
-        // Show error in a more user-friendly way
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-        errorMsg.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
-        errorMsg.innerHTML = `
-          <strong>Error!</strong> Could not update follow status.
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(errorMsg);
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-          if (errorMsg.parentNode) errorMsg.remove();
-        }, 5000);
+        btn.innerHTML = originalText;
+        showToast('Error! Could not update follow status.', 'danger');
       });
     });
   });

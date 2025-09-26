@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - Kefi</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #14b8a6 0%, #0e9488 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+        .header .kefi-logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 900;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            font-size: 16px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .verification-code {
+            background: linear-gradient(135deg, #14b8a6 0%, #0e9488 100%);
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            letter-spacing: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .instructions {
+            color: #4a5568;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .security-note {
+            background-color: #f7fafc;
+            border-left: 4px solid #14b8a6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .security-note p {
+            margin: 0;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer p {
+            color: #718096;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .verification-code {
+                font-size: 28px;
+                letter-spacing: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="kefi-logo">KEFI</div>
+            <h1>🔐 Verify Your Email</h1>
+            <p>Complete your account setup</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <p>Hi there! 👋</p>
+                <p>To complete your <strong>Kefi</strong> registration, please enter the verification code below:</p>
+            </div>
+            
+            <div class="verification-code">
+                {{ code }}
+            </div>
+            
+            <div class="instructions">
+                <p>Enter this code in the verification form to activate your account.</p>
+            </div>
+            
+            <div class="security-note">
+                <p><strong>🔒 Security Note:</strong> This code will expire in 10 minutes for your security. If you didn't request this verification, please ignore this email.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 <strong>Kefi</strong>. All rights reserved.</p>
+            <p>This verification code was sent to {{ email }}</p>
+        </div>
+    </div>
+</body>
+</html>
